@@ -1,0 +1,14 @@
+file(GLOB HEADERS "*.hpp")
+file(GLOB SOURCES "*.cpp")
+
+target_sources(${PROXY_EXE} PUBLIC
+${HEADERS}
+${SOURCES}
+)
+
+target_sources(${PROXY_UNIT_TEST_EXE} PUBLIC
+${HEADERS}
+${SOURCES}
+)
+
+set(SOURCES_STRATUM ${HEADERS} ${SOURCES} PARENT_SCOPE)

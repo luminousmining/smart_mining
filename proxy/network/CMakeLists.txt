@@ -1,0 +1,17 @@
+file(GLOB HEADERS "*.hpp")
+file(GLOB SOURCES "*.cpp")
+
+target_sources(${PROXY_EXE} PUBLIC
+${HEADERS}
+${SOURCES}
+)
+
+target_sources(${PROXY_UNIT_TEST_EXE} PUBLIC
+${HEADERS}
+${SOURCES}
+)
+
+add_subdirectory(session)
+
+set(SOURCES_NETWORK ${HEADERS} ${SOURCES} PARENT_SCOPE)
+set(SOURCES_NETWORK_SESSION ${SOURCES_NETWORK_SESSION} PARENT_SCOPE)

@@ -1,0 +1,9 @@
+file(GLOB HEADERS "*.hpp")
+file(GLOB SOURCES "*.cpp")
+
+target_sources(${PROXY_UNIT_TEST_EXE} PUBLIC
+${HEADERS}
+${SOURCES}
+)
+
+set(SOURCES_ALGO_TESTS ${HEADERS} ${SOURCES} PARENT_SCOPE)
