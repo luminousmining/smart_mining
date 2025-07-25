@@ -1,12 +1,13 @@
+const { db } = require('../common/config');
 const { Pool } = require('pg');
 
 
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'smart_mining',
-    password: 'root',
-    port: 5432,
+    user: db.username,
+    host: db.host,
+    database: db.database,
+    password: db.password,
+    port: db.port,
 });
 
 

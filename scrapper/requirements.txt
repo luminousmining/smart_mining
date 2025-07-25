@@ -1,4 +1,2 @@
 requests
 psycopg2
-pyramid
-selenium
