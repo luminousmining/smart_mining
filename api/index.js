@@ -4,8 +4,8 @@ const port = 3000;
 
 const routeInfoCoins = require('./info/coins');
 const routeInfoCoin = require('./info/coin');
-const routeInfoGpuSpecs = require('./info/gpu_specs')
-const routeInfoGpuSpec = require('./info/gpu_spec')
+// const routeInfoGpuSpecs = require('./info/gpu_specs')
+// const routeInfoGpuSpec = require('./info/gpu_spec')
 const routeProfileEmission = require('./profile/emission');
 const routeProfileHashUsd = require('./profile/hash_usd');
 const routeProfileUsdSecond = require('./profile/usd_sec');
@@ -23,8 +23,8 @@ app.use((req, res, next) => {
 
 app.use('/info/coins', routeInfoCoins);
 app.use('/info/coin', routeInfoCoin);
-app.use('/info/gpu_specs',routeInfoGpuSpecs)
-app.use('/info/gpu_spec',routeInfoGpuSpec)
+// app.use('/info/gpu_specs',routeInfoGpuSpecs)
+// app.use('/info/gpu_spec',routeInfoGpuSpec)
 app.use('/profile/emission', routeProfileEmission);
 app.use('/profile/hash_usd', routeProfileHashUsd);
 app.use('/profile/usd_sec', routeProfileUsdSecond);
