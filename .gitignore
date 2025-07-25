@@ -870,3 +870,5 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,visualstudio,c++,python,pycharm
+
+scrapper/config.json
