@@ -44,7 +44,6 @@ class Config:
             self.log = data['log']
             self.db = ConfigDB(data['db'])
             self.folder_output = data['folder_output']
-            self.proxy_api_host = data['proxy_api_host']
 
             self.apis = ConfigAPIS()
             if 'api' in data:
