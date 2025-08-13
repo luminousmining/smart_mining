@@ -8,11 +8,12 @@ class HardwareManager:
     def __init__(self):
         self._hardwares = []
 
-    def insert(self, name: str, brand: str, speed: float, power: float):
+    def insert(self, name: str, brand: str, algo: str, speed: float, power: float):
         self._hardwares.append(
             {
                 'name': name,
                 'brand': brand,
+                'algo': algo,
                 'speed': speed,
                 'power': power
             }

@@ -1,10 +1,10 @@
+DROP PROCEDURE IF EXISTS insert_hardware_mining;
+DROP PROCEDURE IF EXISTS insert_hardware;
+DROP PROCEDURE IF EXISTS insert_coin;
+
 DROP TABLE IF EXISTS hardware_mining;
 DROP TABLE IF EXISTS hardware;
 DROP TABLE IF EXISTS coins;
-
-DROP PROCEDURE IF EXISTS insert_coin;
-DROP PROCEDURE IF EXISTS insert_hardware;
-DROP PROCEDURE IF EXISTS insert_hardware_mining;
 
 CREATE TABLE coins (
     id SERIAL PRIMARY KEY,
@@ -31,10 +31,11 @@ ALTER TABLE hardware ADD CONSTRAINT unique_hardware_name UNIQUE (name);
 CREATE TABLE hardware_mining (
     id SERIAL PRIMARY KEY,
     hardware_id INTEGER NOT NULL REFERENCES hardware(id) ON DELETE CASCADE,
+    algo VARCHAR(32),
     hashrate NUMERIC,
     power NUMERIC
 );
-ALTER TABLE hardware_mining ADD CONSTRAINT unique_hardware_id UNIQUE (hardware_id);
+ALTER TABLE hardware_mining ADD CONSTRAINT unique_hardware_algo UNIQUE (hardware_id, algo);
 
 CREATE PROCEDURE insert_coin(
     p_name VARCHAR(32),
@@ -77,20 +78,17 @@ BEGIN
         p_emission_usd,
         p_market_cap
     )
-    ON CONFLICT (
-        name
-    ) DO UPDATE
-    SET
-        tag = EXCLUDED.tag,
-        algorithm = EXCLUDED.algorithm,
-        usd = EXCLUDED.usd,
-        usd_sec = EXCLUDED.usd_sec,
-        difficulty = EXCLUDED.difficulty,
-        network_hashrate = EXCLUDED.network_hashrate,
-        hash_usd = EXCLUDED.hash_usd,
-        emission_coin = EXCLUDED.emission_coin,
-        emission_usd = EXCLUDED.emission_usd,
-        market_cap = EXCLUDED.market_cap;
+    ON CONFLICT (name) DO UPDATE
+    SET tag               = EXCLUDED.tag,
+        algorithm         = EXCLUDED.algorithm,
+        usd               = EXCLUDED.usd,
+        usd_sec           = EXCLUDED.usd_sec,
+        difficulty        = EXCLUDED.difficulty,
+        network_hashrate  = EXCLUDED.network_hashrate,
+        hash_usd          = EXCLUDED.hash_usd,
+        emission_coin     = EXCLUDED.emission_coin,
+        emission_usd      = EXCLUDED.emission_usd,
+        market_cap        = EXCLUDED.market_cap;
 END;
 $$;
 
@@ -105,36 +103,36 @@ BEGIN
     ) VALUES (
         p_name
     )
-    ON CONFLICT (
-        name
-    ) DO UPDATE
-    SET
-        name = EXCLUDED.name;
+    ON CONFLICT (name) DO UPDATE
+    SET name = EXCLUDED.name;
 END;
 $$;
 
 CREATE PROCEDURE insert_hardware_mining(
     p_hardware_id INTEGER,
+    p_algo VARCHAR(32),
     p_hashrate NUMERIC,
     p_power NUMERIC
 )
 LANGUAGE plpgsql
-AS $$
+AS 
+$$
+
 BEGIN
     INSERT INTO hardware_mining(
         hardware_id,
+        algo,
         hashrate,
         power
     ) VALUES (
         p_hardware_id,
+        p_algo,
         p_hashrate,
         p_power
     )
-    ON CONFLICT (
-        hardware_id
-    ) DO UPDATE
-    SET
-        hashrate = EXCLUDED.hashrate,
-        power = EXCLUDED.power;
+    ON CONFLICT (hardware_id, algo) DO UPDATE
+    SET hashrate = EXCLUDED.hashrate,
+        algo     = EXCLUDED.algo,
+        power    = EXCLUDED.power;
 END;
 $$;

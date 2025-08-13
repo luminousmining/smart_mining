@@ -92,7 +92,7 @@ def __miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: Ha
         algorithms = hardware['algorithms']
         if not algorithms:
             continue
-        hardware_name = hardware['name'].lower()
+        hardware_name = hardware['name'].lower().replace(' ', '_')
         hardware_brand = hardware['brand'].lower()
         for algo_name, data in algorithms.items():
             algo_name = algo_name.lower().replace('-', '')
@@ -101,6 +101,7 @@ def __miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: Ha
             hardware_manager.insert(
                 name=hardware_name,
                 brand=hardware_brand,
+                algo=algo_name,
                 speed=speed,
                 power=power)
 

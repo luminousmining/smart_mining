@@ -119,6 +119,7 @@ class PostgreSQL:
 
         for hardware in hardware_manager._hardwares:
             name = hardware['name']
+            algo = hardware['algo']
             speed = hardware['speed']
             power = hardware['power']
 
@@ -130,8 +131,10 @@ class PostgreSQL:
 
             query = 'CALL insert_hardware_mining('\
                     f'{hardware_id},'\
+                    f'\'{algo}\','\
                     f'{speed},'\
                     f'{power}'\
                     ');'
+
             self.execute(query)
 
