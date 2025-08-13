@@ -22,11 +22,11 @@ class HashrateNoAPI(ApiHTTP):
 
         if self.use_api and self.api_key:
             coins = self.get(f'v1/coins?apiKey={self.api_key}')
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)
             return coins
         else:
-            logging.debug(f'Read dump {output_file}')
+            logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:
                 return json.load(fd)

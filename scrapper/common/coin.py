@@ -32,7 +32,7 @@ def create_coin_by_hashrate_no(data: dict) -> Coin:
 
     coin.name = data['name'].lower()
     coin.tag = data['coin'].lower()
-    coin.algorithm = data['algo'].lower()
+    coin.algorithm = data['algo'].lower().replace('-', '')
 
     if coin.tag.lower() == "nicehash":
         return None
@@ -56,7 +56,7 @@ def create_coin_by_what_to_mine(name: str, data: dict) -> Coin:
 
     coin.name = name
     coin.tag = data['tag'].lower()
-    coin.algorithm = data['algorithm'].lower()
+    coin.algorithm = data['algorithm'].lower().replace('-', '')
 
     if coin.tag.lower() == "nicehash":
         return None

@@ -21,6 +21,8 @@ class CoinManager:
             os.makedirs(path_folder)
         output_file = os.path.join(path_folder, 'data.json')
 
+        logging.debug(f'Dumping coins in {output_file}')
+
         coins = dict()
         for _, coin in self._coins.items():
             coins[coin.name] = coin.to_dict()
@@ -67,7 +69,7 @@ class CoinManager:
                 keys_to_remove.append(key)
 
         for key in keys_to_remove:
-            logging.debug(f'Need fix coin {key} -> {self._coins[key].to_dict()}')
+            logging.debug(f'🔥 Need fix coin {key} -> {self._coins[key].to_dict()}')
 
         for _, coin in self._coins.items():
             if coin.algorithm not in self._algorithms:

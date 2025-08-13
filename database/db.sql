@@ -1,7 +1,10 @@
+DROP TABLE IF EXISTS hardware_mining;
+DROP TABLE IF EXISTS hardware;
 DROP TABLE IF EXISTS coins;
 
 DROP PROCEDURE IF EXISTS insert_coin;
-
+DROP PROCEDURE IF EXISTS insert_hardware;
+DROP PROCEDURE IF EXISTS insert_hardware_mining;
 
 CREATE TABLE coins (
     id SERIAL PRIMARY KEY,
@@ -17,8 +20,21 @@ CREATE TABLE coins (
     emission_usd NUMERIC,
     market_cap NUMERIC
 );
-ALTER TABLE coins ADD CONSTRAINT unique_name UNIQUE (name);
+ALTER TABLE coins ADD CONSTRAINT unique_coin_name UNIQUE (name);
 
+CREATE TABLE hardware (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(32)
+);
+ALTER TABLE hardware ADD CONSTRAINT unique_hardware_name UNIQUE (name);
+
+CREATE TABLE hardware_mining (
+    id SERIAL PRIMARY KEY,
+    hardware_id INTEGER NOT NULL REFERENCES hardware(id) ON DELETE CASCADE,
+    hashrate NUMERIC,
+    power NUMERIC
+);
+ALTER TABLE hardware_mining ADD CONSTRAINT unique_hardware_id UNIQUE (hardware_id);
 
 CREATE PROCEDURE insert_coin(
     p_name VARCHAR(32),
@@ -75,5 +91,50 @@ BEGIN
         emission_coin = EXCLUDED.emission_coin,
         emission_usd = EXCLUDED.emission_usd,
         market_cap = EXCLUDED.market_cap;
+END;
+$$;
+
+CREATE PROCEDURE insert_hardware(
+    p_name VARCHAR(32)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO hardware(
+        name
+    ) VALUES (
+        p_name
+    )
+    ON CONFLICT (
+        name
+    ) DO UPDATE
+    SET
+        name = EXCLUDED.name;
+END;
+$$;
+
+CREATE PROCEDURE insert_hardware_mining(
+    p_hardware_id INTEGER,
+    p_hashrate NUMERIC,
+    p_power NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO hardware_mining(
+        hardware_id,
+        hashrate,
+        power
+    ) VALUES (
+        p_hardware_id,
+        p_hashrate,
+        p_power
+    )
+    ON CONFLICT (
+        hardware_id
+    ) DO UPDATE
+    SET
+        hashrate = EXCLUDED.hashrate,
+        power = EXCLUDED.power;
 END;
 $$;

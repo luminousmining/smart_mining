@@ -12,6 +12,7 @@ class MinerStatAPI(ApiHTTP):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
         self.dump_file = config.dump_file
+        self.dump_file_hardware = f'{os.path.splitext(os.path.basename(self.dump_file))[0]}_hardware.json'
         self.path_dump_file = os.path.join(folder_output, 'minerstat')
 
         if not os.path.exists(self.path_dump_file):
@@ -22,11 +23,25 @@ class MinerStatAPI(ApiHTTP):
 
         if self.use_api:
             coins = self.get('/v2/coins')
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)
             return coins
         else:
-            logging.debug(f'Read dump {output_file}')
+            logging.debug(f'🔍 Read dump {output_file}')
+            with open(output_file) as fd:
+                return json.load(fd)
+
+    def get_hardware(self) -> dict:
+        output_file = os.path.join(self.path_dump_file, self.dump_file_hardware)
+
+        if self.use_api:
+            hardwares = self.get('v2/hardware')
+            logging.debug(f'📥 Dumping in {output_file}')
+            with open(output_file, 'w') as fd:
+                json.dump(hardwares, fd, indent=4)
+            return hardwares
+        else:
+            logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:
                 return json.load(fd)

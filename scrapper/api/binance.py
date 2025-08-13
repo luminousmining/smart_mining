@@ -30,12 +30,12 @@ class BinanceAPI(ApiHTTP):
 
         if self.use_api:
             symbols = self.get('api/v3/exchangeInfo')['symbols']
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(symbols, fd, indent=4)
             return symbols
         else:
-            logging.debug(f'Read dump {output_file}')
+            logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:
                 return json.load(fd)
 
@@ -44,7 +44,7 @@ class BinanceAPI(ApiHTTP):
 
         if self.use_api:
             price = self.get(f'api/v3/ticker/price?symbol={symbol}')
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(price, fd, indent=4)
             return price
@@ -57,7 +57,7 @@ class BinanceAPI(ApiHTTP):
 
         if self.use_api:
             avg_price = self.get(f'api/v3/avgPrice?symbol={symbol}')
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(avg_price, fd, indent=4)
             return avg_price

@@ -875,3 +875,4 @@ scrapper/config.json
 scrapper/dataset/
 
 api/config.json
+config*.json

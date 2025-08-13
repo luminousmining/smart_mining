@@ -6,4 +6,5 @@ from common.coin import (
     update_coin_by_minerstat
 )
 from common.coin_manager import CoinManager
+from common.hardware_manager import HardwareManager
 from common.pg import PostgreSQL

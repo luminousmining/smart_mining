@@ -2,7 +2,10 @@ import psycopg2
 import logging
 
 from config import Config
-from common import CoinManager
+from common import (
+    CoinManager,
+    HardwareManager
+)
 
 
 class PostgreSQL:
@@ -18,6 +21,7 @@ class PostgreSQL:
 
     def connect(self) -> bool:
         try:
+            logging.info(f'🔄 Connection database {self.database} with user {self.username}...')
             self.connection = psycopg2.connect(
                 host=self.host,
                 database=self.database,
@@ -31,31 +35,72 @@ class PostgreSQL:
             self.connection = None
             return False
 
+        logging.info(f'✅ Connection with success')
         return True
 
-    def request(self, query: str):
+    def request_one(self, query: str):
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+
+        logging.debug(f'📝 {query}')
+
+        self.cursor.execute(query)
+        return self.cursor.fetchone()
+
+    def request_all(self, query: str):
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+
+        logging.debug(f'📝 {query}')
+
         self.cursor.execute(query)
         results = self.cursor.fetchall()
         for row in results:
             yield row
 
     def execute(self, query: str) -> None:
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+            return
+        if not self.connection:
+            logging.error(f'❌ Connection is invalid')
+            return
+
+        logging.debug(f'📝 {query}')
+
         self.cursor.execute(query)
         self.connection.commit()
 
     def disconnect(self) -> bool:
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+            return False
+        if not self.connection:
+            logging.error(f'❌ Connection is invalid')
+            return False
+
         self.cursor.close()
         self.connection.close()
         return True
 
     def is_connected(self) -> bool:
         if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
             return False
         if not self.connection:
+            logging.error(f'❌ Connection is invalid')
             return False
+
         return True
 
-    def update(self, coin_manager: CoinManager) -> None:
+    def update(self, coin_manager: CoinManager, hardware_manager: HardwareManager) -> None:
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+            return
+        if not self.connection:
+            logging.error(f'❌ Connection is invalid')
+            return
+
         for _, coin in coin_manager._coins.items():
             query = 'CALL insert_coin('\
                 f'\'{coin.name}\','\
@@ -70,5 +115,23 @@ class PostgreSQL:
                 f' {coin.reward.emission_usd if coin.reward.emission_usd else 0},'\
                 f' {coin.reward.market_cap if coin.reward.market_cap else 0}'\
                 f');'
-            self.cursor.execute(query)
-        self.connection.commit()
+            self.execute(query)
+
+        for hardware in hardware_manager._hardwares:
+            name = hardware['name']
+            speed = hardware['speed']
+            power = hardware['power']
+
+            query = f'CALL insert_hardware(\'{name}\');'
+            self.execute(query)
+
+            query = f'SELECT id FROM hardware WHERE name=\'{name}\';'
+            hardware_id = self.request_one(query)[0]
+
+            query = 'CALL insert_hardware_mining('\
+                    f'{hardware_id},'\
+                    f'{speed},'\
+                    f'{power}'\
+                    ');'
+            self.execute(query)
+

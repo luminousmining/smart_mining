@@ -22,11 +22,11 @@ class WhatToMineAPI(ApiHTTP):
 
         if self.use_api:
             coins = self.get('coins.json')
-            logging.debug(f'Dumping in {output_file}')
+            logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)
             return coins['coins']
         else:
-            logging.debug(f'Read dump {output_file}')
+            logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:
                 return json.load(fd)['coins']

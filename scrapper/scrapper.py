@@ -1,4 +1,5 @@
 import logging
+import argparse
 
 from config import Config
 from api import (
@@ -9,6 +10,7 @@ from api import (
 )
 from common import (
     CoinManager,
+    HardwareManager,
     PostgreSQL,
     create_coin_by_what_to_mine,
     create_coin_by_hashrate_no,
@@ -35,9 +37,12 @@ def initialize_logger(level: str) -> None:
 
 
 def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
+    logging.info('===== HASHRATE NO =====')
+
     if not config.apis.hashrate_no:
         return
 
+    logging.info('🔄 get coins informations....')
     api = HashrateNoAPI(config.apis.hashrate_no, config.folder_output)
     coins = api.get_coins()
     for value in coins:
@@ -47,9 +52,12 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
 
 
 def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
+    logging.info('===== WHAT TO MINE =====')
+
     if not config.apis.what_to_mine:
         return
 
+    logging.info('🔄 get coins informations....')
     api = WhatToMineAPI(config.apis.what_to_mine, config.folder_output)
     coins = api.get_coins()
     for name, value in coins.items():
@@ -58,10 +66,13 @@ def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
             coin_manager.insert(coin)
 
 
-def __miner_stat(config: Config, coin_manager: CoinManager) -> None:
+def __miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: HardwareManager) -> None:
+    logging.info('===== MINERSTAT =====')
+
     if not config.apis.minerstat:
         return
 
+    logging.info('🔄 get coins informations....')
     api = MinerStatAPI(config.apis.minerstat, config.folder_output)
     coins = api.get_coins()
     for value in coins:
@@ -72,11 +83,35 @@ def __miner_stat(config: Config, coin_manager: CoinManager) -> None:
         if coin:
             update_coin_by_minerstat(coin, value)
 
+    logging.info('🔄 get hardware informations....')
+    hardwares = api.get_hardware()
+    for hardware in hardwares:
+        hardware_type = hardware['type']
+        if hardware_type != 'gpu':
+            continue
+        algorithms = hardware['algorithms']
+        if not algorithms:
+            continue
+        hardware_name = hardware['name'].lower()
+        hardware_brand = hardware['brand'].lower()
+        for algo_name, data in algorithms.items():
+            algo_name = algo_name.lower().replace('-', '')
+            speed = data['speed']
+            power = data['power']
+            hardware_manager.insert(
+                name=hardware_name,
+                brand=hardware_brand,
+                speed=speed,
+                power=power)
+
 
 def __binance(config: Config, coin_manager: CoinManager) -> None:
+    logging.info('===== BINANCE =====')
+
     if not config.apis.binance:
         return
 
+    logging.info('🔄 get coins informations....')
     api = BinanceAPI(config.apis.binance, config.folder_output)
     symbols = api.get_symbols()
     for data in symbols:
@@ -100,10 +135,11 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
 
 
 def run(config: Config):
-    logging.info('Start profiles!')
+    logging.info('🚀 Start scrapper!')
 
-    # Coin Manager
+    # Managers
     coin_manager = CoinManager()
+    hadrware_manager = HardwareManager()
 
     # Database
     pg = PostgreSQL(config)
@@ -113,15 +149,16 @@ def run(config: Config):
     # APIs
     __hashrate_no(config, coin_manager)
     __what_to_mine(config, coin_manager)
-    __miner_stat(config, coin_manager)
+    __miner_stat(config, coin_manager, hadrware_manager)
     # __binance(config, coin_manager)
 
-    # Coin Manager update data each coin
+    # Coin Manager update
     coin_manager.update()
 
     # Save data
     coin_manager.dump(config.folder_output)
-    pg.update(coin_manager)
+    hadrware_manager.dump(config.folder_output)
+    pg.update(coin_manager, hadrware_manager)
 
     # PostgreSQL disconnect
     if pg.is_connected() is True:
@@ -129,7 +166,11 @@ def run(config: Config):
 
 
 if __name__ == '__main__':
-    project_config = Config('config.json')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', '-c', default='config.json')
+    args = parser.parse_args()
+
+    project_config = Config(args.config)
     initialize_logger(project_config.log)
     run(project_config)
 else:
