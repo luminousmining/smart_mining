@@ -8,7 +8,7 @@ RUN apt-get install -y gcc libpq-dev
 COPY api ./api
 COPY common ./common
 COPY config.py .
-COPY config.json /
+COPY config.json .
 COPY requirements.txt .
 COPY scrapper.py .
 
