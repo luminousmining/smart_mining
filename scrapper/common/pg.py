@@ -4,6 +4,7 @@ import logging
 from config import Config
 from common import (
     CoinManager,
+    PoolManager,
     HardwareManager
 )
 
@@ -93,7 +94,7 @@ class PostgreSQL:
 
         return True
 
-    def update(self, coin_manager: CoinManager, hardware_manager: HardwareManager) -> None:
+    def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
         if not self.cursor:
             logging.error(f'❌ Cursor is invalid')
             return
@@ -101,7 +102,7 @@ class PostgreSQL:
             logging.error(f'❌ Connection is invalid')
             return
 
-        for _, coin in coin_manager._coins.items():
+        for coin in coin_manager._coins.values():
             query = 'CALL insert_coin('\
                 f'\'{coin.name}\','\
                 f' \'{coin.tag}\','\
@@ -116,6 +117,21 @@ class PostgreSQL:
                 f' {coin.reward.market_cap if coin.reward.market_cap else 0}'\
                 f');'
             self.execute(query)
+
+        for pool_name, pool in pool_manager._pools.items():
+            pool_name = pool_name.replace('\'', '')
+            for coin_name, coin_value in pool.coins.items():
+                query = 'CALL insert_pool('\
+                    f'\'{pool_name}\','\
+                    f'\'{pool.website}\','\
+                    f'{pool.founded},'\
+                    f'\'{coin_name}\','\
+                    f'\'{coin_value["algorithm"]}\','\
+                    f'\'{coin_value["anonymous"]}\','\
+                    f'\'{coin_value["registration"]}\','\
+                    f'\'{coin_value["fee"]}\''\
+                    ');'
+                self.execute(query)
 
         for hardware in hardware_manager._hardwares:
             name = hardware['name']

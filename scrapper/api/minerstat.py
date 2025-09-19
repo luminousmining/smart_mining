@@ -11,8 +11,9 @@ class MinerStatAPI(ApiHTTP):
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
-        self.dump_file = config.dump_file
-        self.dump_file_hardware = f'{os.path.splitext(os.path.basename(self.dump_file))[0]}_hardware.json'
+        self.dump_file = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_coin.json'
+        self.dump_file_hardware = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_hardware.json'
+        self.dump_file_pool = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_pool.json'
         self.path_dump_file = os.path.join(folder_output, 'minerstat')
 
         if not os.path.exists(self.path_dump_file):
@@ -41,6 +42,20 @@ class MinerStatAPI(ApiHTTP):
             with open(output_file, 'w') as fd:
                 json.dump(hardwares, fd, indent=4)
             return hardwares
+        else:
+            logging.debug(f'🔍 Read dump {output_file}')
+            with open(output_file) as fd:
+                return json.load(fd)
+
+    def get_pools(self) -> dict:
+        output_file = os.path.join(self.path_dump_file, self.dump_file_pool)
+
+        if self.use_api:
+            pools = self.get('/v2/pools')
+            logging.debug(f'📥 Dumping in {output_file}')
+            with open(output_file, 'w') as fd:
+                json.dump(pools, fd, indent=4)
+            return pools
         else:
             logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:

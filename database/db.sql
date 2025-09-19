@@ -1,7 +1,9 @@
+DROP PROCEDURE IF EXISTS insert_pool;
 DROP PROCEDURE IF EXISTS insert_hardware_mining;
 DROP PROCEDURE IF EXISTS insert_hardware;
 DROP PROCEDURE IF EXISTS insert_coin;
 
+DROP TABLE IF EXISTS pools;
 DROP TABLE IF EXISTS hardware_mining;
 DROP TABLE IF EXISTS hardware;
 DROP TABLE IF EXISTS coins;
@@ -36,6 +38,19 @@ CREATE TABLE hardware_mining (
     power NUMERIC
 );
 ALTER TABLE hardware_mining ADD CONSTRAINT unique_hardware_algo UNIQUE (hardware_id, algo);
+
+CREATE TABLE pools(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(32),
+    website VARCHAR(64),
+    founded NUMERIC,
+    tag VARCHAR(32),
+    algorithm VARCHAR(32),
+    anonymous BOOLEAN,
+    registration BOOLEAN,
+    fee NUMERIC
+);
+ALTER TABLE pools ADD CONSTRAINT unique_pool UNIQUE (name, tag, algorithm);
 
 CREATE PROCEDURE insert_coin(
     p_name VARCHAR(32),
@@ -105,6 +120,47 @@ BEGIN
     )
     ON CONFLICT (name) DO UPDATE
     SET name = EXCLUDED.name;
+END;
+$$;
+
+CREATE PROCEDURE insert_pool(
+    p_name VARCHAR(32),
+    p_website VARCHAR(64),
+    p_founded NUMERIC,
+    p_tag VARCHAR(32),
+    p_algorithm VARCHAR(32),
+    p_anonymous BOOLEAN,
+    p_registration BOOLEAN,
+    p_fee NUMERIC
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    INSERT INTO pools(
+        name,
+        website,
+        founded,
+        tag,
+        algorithm,
+        anonymous,
+        registration,
+        fee
+    ) VALUES (
+        p_name,
+        p_website,
+        p_founded,
+        p_tag,
+        p_algorithm,
+        p_anonymous,
+        p_registration,
+        p_fee
+    )
+    ON CONFLICT (name, tag, algorithm) DO UPDATE
+    SET website         = EXCLUDED.website,
+        founded         = EXCLUDED.founded,
+        anonymous       = EXCLUDED.anonymous,
+        registration    = EXCLUDED.registration,
+        fee             = EXCLUDED.fee;
 END;
 $$;
 

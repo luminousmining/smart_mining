@@ -12,6 +12,8 @@ from common import (
     CoinManager,
     HardwareManager,
     PostgreSQL,
+    Pool,
+    PoolManager,
     create_coin_by_what_to_mine,
     create_coin_by_hashrate_no,
     update_coin_by_minerstat
@@ -66,14 +68,15 @@ def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
             coin_manager.insert(coin)
 
 
-def __miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: HardwareManager) -> None:
+def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
     logging.info('===== MINERSTAT =====')
 
     if not config.apis.minerstat:
         return
 
-    logging.info('🔄 get coins informations....')
     api = MinerStatAPI(config.apis.minerstat, config.folder_output)
+
+    logging.info('🔄 get coins informations....')
     coins = api.get_coins()
     for value in coins:
         if value['type'] != 'coin':
@@ -82,6 +85,42 @@ def __miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: Ha
         coin = coin_manager.get_from_tag(tag)
         if coin:
             update_coin_by_minerstat(coin, value)
+
+    logging.info('🔄 get pools informations....')
+    pools = api.get_pools()
+    for pool_data in pools:
+        pool = Pool()
+        coins = pool_data['coins']
+        if not coins:
+            continue
+        pool.name = pool_data['name'].lower()
+        pool.website = pool_data['website']
+        pool.founded = int(pool_data['founded']) if pool_data['founded'] else 0
+
+        for coin_name, item in coins.items():
+            coin = coin_manager.get_from_tag(coin_name.lower())
+            if not coin:
+                logging.debug(f'❌ Cannot find tag [{coin_name.lower()}] from pool [{pool.name}]')
+                continue
+            pool.coins[coin.name] = {}
+
+            algorithm = item['algorithm'].lower().replace('-', '')
+            fee = item['fee'].replace('%', '')
+            if '-' in fee:
+                fee = fee.split('-')[-1]
+            anonymous = item['anonymous']
+            registration = item['registration']
+
+            if not algorithm:
+                continue
+
+            pool.coins[coin.name]['algorithm'] = algorithm
+            pool.coins[coin.name]['algorithm'] = algorithm
+            pool.coins[coin.name]['fee'] = fee if fee else 0
+            pool.coins[coin.name]['anonymous'] = anonymous
+            pool.coins[coin.name]['registration'] = registration
+
+            pool_manager.insert(pool)
 
     logging.info('🔄 get hardware informations....')
     hardwares = api.get_hardware()
@@ -140,6 +179,7 @@ def run(config: Config):
 
     # Managers
     coin_manager = CoinManager()
+    pool_manager = PoolManager()
     hadrware_manager = HardwareManager()
 
     # Database
@@ -150,7 +190,7 @@ def run(config: Config):
     # APIs
     __hashrate_no(config, coin_manager)
     __what_to_mine(config, coin_manager)
-    __miner_stat(config, coin_manager, hadrware_manager)
+    __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
     # __binance(config, coin_manager)
 
     # Coin Manager update
@@ -158,8 +198,9 @@ def run(config: Config):
 
     # Save data
     coin_manager.dump(config.folder_output)
+    pool_manager.dump(config.folder_output)
     hadrware_manager.dump(config.folder_output)
-    pg.update(coin_manager, hadrware_manager)
+    pg.update(coin_manager, pool_manager, hadrware_manager)
 
     # PostgreSQL disconnect
     if pg.is_connected() is True:

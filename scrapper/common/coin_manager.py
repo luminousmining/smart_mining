@@ -21,7 +21,7 @@ class CoinManager:
             os.makedirs(path_folder)
         output_file = os.path.join(path_folder, 'data.json')
 
-        logging.debug(f'Dumping coins in {output_file}')
+        logging.debug(f'📥 Dumping coins in {output_file}')
 
         coins = dict()
         for _, coin in self._coins.items():
