@@ -39,6 +39,7 @@ boost::json::value mining::apiGet(std::string const& endpoint)
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
         // Send
+        logDebug() << "GET: " << target;
         http::write(socket, req);
 
         // Read
