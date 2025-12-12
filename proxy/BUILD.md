@@ -10,7 +10,7 @@ cmake: https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-l
   
 compiler :
 ```bah
-sudo apt install -y build-essential libstdc++-10-dev gnutls-dev cppcheck checkinstall clang-10 libx11-dev
+sudo apt install -y build-essential libstdc++-12-dev gnutls-dev cppcheck checkinstall clang-15 libx11-dev
 ```
   
 openssl :
