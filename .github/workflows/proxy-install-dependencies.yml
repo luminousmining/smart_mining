@@ -17,8 +17,15 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential libstdc++-12-dev gnutls-dev \
-                                cppcheck checkinstall clang-15 libx11-dev wget
+        sudo apt-get install -y build-essential \
+                                libstdc++-12-dev \
+                                gnutls-dev \
+                                cppcheck \
+                                checkinstall \
+                                clang-15 \
+                                clang++-15 \
+                                libx11-dev \
+                                wget
 
     - name: Install CMake 3.26.4
       run: |
@@ -31,7 +38,7 @@ jobs:
       uses: actions/cache@v3
       with:
         path: /usr/local/ssl
-        key: openssl-1.1.1-${{ runner.os }}
+        key: openssl-1.1.1-ubuntu-22.04
 
     - name: Install OpenSSL 1.1.1
       if: steps.cache-openssl.outputs.cache-hit != 'true'
@@ -47,8 +54,10 @@ jobs:
       id: cache-boost
       uses: actions/cache@v3
       with:
-        path: /usr/local/include/boost
-        key: boost-1.86.0-${{ runner.os }}
+        path: |
+          /usr/local/include/boost
+          /usr/local/lib/libboost_*
+        key: boost-1.86.0-ubuntu-22.04
 
     - name: Install Boost 1.86.0
       if: steps.cache-boost.outputs.cache-hit != 'true'
@@ -57,7 +66,10 @@ jobs:
         tar -xzf boost_1_86_0.tar.gz
         cd boost_1_86_0
         ./bootstrap.sh --prefix=/usr/local
-        sudo ./b2 install -j$(nproc)
+        sudo ./b2 install --with-atomic --with-chrono --with-filesystem \
+                          --with-system --with-json --with-thread \
+                          --with-serialization --with-program_options \
+                          -j$(nproc)
 
     - name: Configure CMake
       working-directory: ./proxy
@@ -65,15 +77,9 @@ jobs:
         mkdir -p build
         cd build
         cmake .. -DCMAKE_BUILD_TYPE=Release \
-                 -DOPENSSL_ROOT_DIR=/usr/local/ssl
-
-    - name: Re-Configure CMake
-      working-directory: ./proxy
-      run: |
-        mkdir -p build
-        cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release \
-                 -DOPENSSL_ROOT_DIR=/usr/local/ssl
+                 -DOPENSSL_ROOT_DIR=/usr/local/ssl \
+                 -DBOOST_INCLUDEDIR=/usr/local/include/boost \
+                 -DBOOST_LIBRARYDIR=/usr/local/lib
 
     - name: Build project
       working-directory: ./proxy/build
@@ -83,4 +89,6 @@ jobs:
     - name: Verify build
       working-directory: ./proxy/build
       run: |
-        ls -lh
+        ls -lh ../bin/
+        file ../bin/proxy || true
+        file ../bin/proxy_test || true

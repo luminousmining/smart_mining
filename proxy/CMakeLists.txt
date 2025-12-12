@@ -47,8 +47,9 @@ endif()
 ################################################################################
 ### BOOST                                                                   ####
 ################################################################################
-set(BOOST_INCLUDEDIR "/usr/local/include/boost")
+set(BOOST_INCLUDEDIR "/usr/local/include")
 set(BOOST_LIBRARYDIR "/usr/local/lib")
+set(Boost_NO_SYSTEM_PATHS ON)
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(Boost_DEBUG             ON)
     set(Boost_USE_DEBUG_LIBS    ON)
