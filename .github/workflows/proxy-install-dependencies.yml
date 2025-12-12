@@ -1,0 +1,78 @@
+name: Test Proxy Build Dependencies
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential libstdc++-10-dev gnutls-dev \
+                                cppcheck checkinstall clang-10 libx11-dev wget
+
+    - name: Install CMake 3.26.4
+      run: |
+        wget https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.sh
+        sudo sh cmake-3.26.4-linux-x86_64.sh --skip-license --prefix=/usr/local
+        cmake --version
+
+    - name: Cache OpenSSL
+      id: cache-openssl
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/ssl
+        key: openssl-1.1.1-${{ runner.os }}
+
+    - name: Install OpenSSL 1.1.1
+      if: steps.cache-openssl.outputs.cache-hit != 'true'
+      run: |
+        git clone --branch OpenSSL_1_1_1-stable --depth 1 https://github.com/openssl/openssl.git
+        cd openssl
+        ./config --prefix=/usr/local/ssl --openssldir=/usr/local/ssl
+        make -j$(nproc)
+        sudo make install
+        sudo ldconfig
+
+    - name: Cache Boost
+      id: cache-boost
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/include/boost
+        key: boost-1.86.0-${{ runner.os }}
+
+    - name: Install Boost 1.86.0
+      if: steps.cache-boost.outputs.cache-hit != 'true'
+      run: |
+        wget --no-check-certificate https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.gz
+        tar -xzf boost_1_86_0.tar.gz
+        cd boost_1_86_0
+        ./bootstrap.sh --prefix=/usr/local
+        sudo ./b2 install -j$(nproc)
+
+    - name: Configure CMake
+      working-directory: ./proxy
+      run: |
+        mkdir -p build
+        cd build
+        cmake .. -DCMAKE_BUILD_TYPE=Release \
+                 -DOPENSSL_ROOT_DIR=/usr/local/ssl
+
+    - name: Build project
+      working-directory: ./proxy/build
+      run: |
+        cmake --build . --config Release -j$(nproc)
+
+    - name: Verify build
+      working-directory: ./proxy/build
+      run: |
+        ls -lh

@@ -7,9 +7,7 @@ project(luminousminer VERSION 0.10)
 enable_language(C)
 enable_language(CXX)
 
-if (NOT WIN32)
-    cmake_policy(SET CMP0135 NEW)
-endif()
+cmake_policy(SET CMP0135 NEW)
 
 ################################################################################
 ### DEFAULT BUILD TYPE                                                      ####
@@ -34,69 +32,23 @@ set(CMAKE_CXX_CPPCHECK "cppcheck")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-if (WIN32)
-################################################################################
-### VISUAL STUDIO                                                           ####
-################################################################################
-    set(CMAKE_GENERATOR_PLATFORM "x64")
-    set(VISUAL_STUDIO_VERSION 143)
-    set(CMAKE_SYSTEM_VERSION 10.0.22621.0)
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
-    else()
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
-    endif()
-
-    macro(get_WIN32_WINNT version)
-    if(CMAKE_SYSTEM_VERSION)
-        set(ver ${CMAKE_SYSTEM_VERSION})
-        string(REGEX MATCH "^([0-9]+).([0-9])" ver ${ver})
-        string(REGEX MATCH "^([0-9]+)" verMajor ${ver})
-        # Check for Windows 10, b/c we'll need to convert to hex 'A'.
-        if("${verMajor}" MATCHES "10")
-        set(verMajor "A")
-        string(REGEX REPLACE "^([0-9]+)" ${verMajor} ver ${ver})
-        endif("${verMajor}" MATCHES "10")
-        # Remove all remaining '.' characters.
-        string(REPLACE "." "" ver ${ver})
-        # Prepend each digit with a zero.
-        string(REGEX REPLACE "([0-9A-Z])" "0\\1" ver ${ver})
-        set(${version} "0x${ver}")
-    endif(CMAKE_SYSTEM_VERSION)
-    endmacro(get_WIN32_WINNT)
-    get_win32_winnt(WIN32_VERSION)
-    add_definitions(-D_WIN32_WINNT=${WIN32_VERSION})
-    add_definitions(/W4)
-    add_compile_definitions(NOMINMAX)
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-#        add_definitions(/WX)
-    endif()
-else()
 ################################################################################
 ### CLANG                                                                   ####
 ################################################################################
-    set(CMAKE_C_COMPILER "clang-15" CACHE STRING "C compiler" FORCE)
-    set(CMAKE_CXX_COMPILER "clang++-15" CACHE STRING "C++ compiler" FORCE)
-    add_compile_options(-W -Wall -Wextra)
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-O0 -g3 -ggdb -v)
-    else()
-        add_compile_options(-O3)
-    endif()
+set(CMAKE_C_COMPILER "clang-15" CACHE STRING "C compiler" FORCE)
+set(CMAKE_CXX_COMPILER "clang++-15" CACHE STRING "C++ compiler" FORCE)
+add_compile_options(-W -Wall -Wextra)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-O0 -g3 -ggdb -v)
+else()
+    add_compile_options(-O3)
 endif()
 
 ################################################################################
 ### BOOST                                                                   ####
 ################################################################################
-if (WIN32)
-    set(Boost_ROOT       "C:\\Boost")
-    set(BOOST_INCLUDEDIR "C:\\Boost\\include\\boost-1_86")
-    set(Boost_COMPILER   -vc${VISUAL_STUDIO_VERSION})
-    set(Boost_THREADAPI  win32)
-else()
-    set(BOOST_INCLUDEDIR "/usr/local/include/boost")
-    set(BOOST_LIBRARYDIR "/usr/local/lib")
-endif()
+set(BOOST_INCLUDEDIR "/usr/local/include/boost")
+set(BOOST_LIBRARYDIR "/usr/local/lib")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(Boost_DEBUG             ON)
     set(Boost_USE_DEBUG_LIBS    ON)
@@ -117,9 +69,6 @@ set(Boost_USE_STATIC_RUNTIME   OFF)
 ################################################################################
 ### OPENSSL                                                                 ####
 ################################################################################
-if (WIN32)
-    set(OPENSSL_ROOT_DIR "C:\\Program Files\\OpenSSL")
-endif()
 set(OPENSSL_USE_STATIC_LIBS TRUE)
 set(OPEN_SSL_LIBRARIES OpenSSL::SSL OpenSSL::Crypto)
 
@@ -219,10 +168,8 @@ source_group("stratum" FILES ${SOURCES_STRATUM})
 ################################################################################
 ###  LINK LIBRARIES                                                         ####
 ################################################################################
-if (NOT WIN32)
-    target_link_options(${PROXY_EXE} PUBLIC -static-libstdc++ -static-libgcc)
-    target_link_options(${PROXY_UNIT_TEST_EXE} PUBLIC -static-libstdc++ -static-libgcc)
-endif()
+target_link_options(${PROXY_EXE} PUBLIC -static-libstdc++ -static-libgcc)
+target_link_options(${PROXY_UNIT_TEST_EXE} PUBLIC -static-libstdc++ -static-libgcc)
 
 target_sources(${PROXY_EXE} PUBLIC
     ${PROXY_HEADERS}
