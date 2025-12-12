@@ -122,16 +122,6 @@ add_executable(${PROXY_EXE})
 ################################################################################
 ###  SOURCES                                                                ####
 ################################################################################
-set(SOURCES_ALGO)
-set(SOURCES_ALGO_TESTS)
-set(SOURCES_COMMON)
-set(SOURCES_COMMON_LOG)
-set(SOURCES_PROFILE)
-set(SOURCES_NETWORK)
-set(SOURCES_NETWORK_SESSION)
-set(SOURCES_MINING)
-set(SOURCES_STRATUM)
-
 add_subdirectory(algo)
 add_subdirectory(common)
 add_subdirectory(network)
@@ -139,15 +129,15 @@ add_subdirectory(profile)
 add_subdirectory(mining)
 add_subdirectory(stratum)
 
-set(SOURCES_ALGO ${SOURCES_ALGO} PARENT_SCOPE)
-set(SOURCES_ALGO_TESTS ${SOURCES_ALGO_TESTS} PARENT_SCOPE)
-set(SOURCES_COMMON ${SOURCES_COMMON} PARENT_SCOPE)
-set(SOURCES_COMMON_LOG ${SOURCES_COMMON_LOG} PARENT_SCOPE)
-set(SOURCES_PROFILE ${SOURCES_PROFILE} PARENT_SCOPE)
-set(SOURCES_NETWORK ${SOURCES_NETWORK} PARENT_SCOPE)
-set(SOURCES_NETWORK_SESSION ${SOURCES_NETWORK_SESSION} PARENT_SCOPE)
-set(SOURCES_MINING ${SOURCES_MINING} PARENT_SCOPE)
-set(SOURCES_STRATUM ${SOURCES_STRATUM} PARENT_SCOPE)
+set(SOURCES_ALGO ${SOURCES_ALGO})
+set(SOURCES_ALGO_TESTS ${SOURCES_ALGO_TESTS})
+set(SOURCES_COMMON ${SOURCES_COMMON})
+set(SOURCES_COMMON_LOG ${SOURCES_COMMON_LOG})
+set(SOURCES_PROFILE ${SOURCES_PROFILE})
+set(SOURCES_NETWORK ${SOURCES_NETWORK})
+set(SOURCES_NETWORK_SESSION ${SOURCES_NETWORK_SESSION})
+set(SOURCES_MINING ${SOURCES_MINING})
+set(SOURCES_STRATUM ${SOURCES_STRATUM})
 
 
 ################################################################################
