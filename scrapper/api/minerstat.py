@@ -16,6 +16,9 @@ class MinerStatAPI(ApiHTTP):
         self.dump_file_pool = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_pool.json'
         self.path_dump_file = os.path.join(folder_output, 'minerstat')
 
+        if self.use_api and config.api_key:
+            self.update_header('X-API-Key', self.api_key)
+
         if not os.path.exists(self.path_dump_file):
             os.makedirs(self.path_dump_file)
 
@@ -27,7 +30,7 @@ class MinerStatAPI(ApiHTTP):
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)
-            return coins
+            return coins['data']
         else:
             logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:

@@ -47,7 +47,7 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
     logging.info('🔄 get coins informations....')
     api = HashrateNoAPI(config.apis.hashrate_no, config.folder_output)
     coins = api.get_coins()
-    for value in coins:
+    for _, value in coins.items():
         coin = create_coin_by_hashrate_no(value)
         if coin:
             coin_manager.insert(coin)
@@ -191,7 +191,7 @@ def run(config: Config):
     __hashrate_no(config, coin_manager)
     __what_to_mine(config, coin_manager)
     __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
-    # __binance(config, coin_manager)
+    __binance(config, coin_manager)
 
     # Coin Manager update
     coin_manager.update()
@@ -200,7 +200,10 @@ def run(config: Config):
     coin_manager.dump(config.folder_output)
     pool_manager.dump(config.folder_output)
     hadrware_manager.dump(config.folder_output)
-    pg.update(coin_manager, pool_manager, hadrware_manager)
+
+    # PostgreSQL update database
+    if config.db.update:
+        pg.update(coin_manager, pool_manager, hadrware_manager)
 
     # PostgreSQL disconnect
     if pg.is_connected() is True:

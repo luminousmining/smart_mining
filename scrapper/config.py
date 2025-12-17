@@ -33,6 +33,7 @@ class ConfigDB:
         self.username = data['username']
         self.password = data['password']
         self.port = data['port']
+        self.update = False if 'update' not in data else data['update']
 
 
 class Config:

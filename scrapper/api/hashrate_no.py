@@ -21,7 +21,7 @@ class HashrateNoAPI(ApiHTTP):
         output_file = os.path.join(self.path_dump_file, self.dump_file)
 
         if self.use_api and self.api_key:
-            coins = self.get(f'v1/coins?apiKey={self.api_key}')
+            coins = self.get(f'coins?apiKey={self.api_key}')
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)

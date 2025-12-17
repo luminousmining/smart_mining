@@ -31,20 +31,26 @@ def create_coin_by_hashrate_no(data: dict) -> Coin:
     coin = Coin()
 
     coin.name = data['name'].lower()
-    coin.tag = data['coin'].lower()
-    coin.algorithm = data['algo'].lower().replace('-', '')
+    coin.tag = data['ticker'].lower()
+    coin.algorithm = data['algorithm'].lower().replace('-', '')
 
     if coin.tag.lower() == "nicehash":
         return None
     if 'nicehash' in coin.name.lower():
         return None
 
+    price = data['price']['USD']
+    hashrate =  data['network']['hashrate']
+    difficulty =  data['network']['difficulty']
+    emission =  data['network']['emission']
+    emissionUSD =  data['network']['emissionUSD']
+
     reward = Reward()
-    reward.usd = float(data['usdPrice'])
-    reward.network_hashrate = float(data['networkHashrate'])
-    reward.difficulty = float(data['networkDifficulty'])
-    reward.emission_coin = float(data['emission'])
-    reward.emission_usd = float(data['emissionUSD'])
+    reward.usd = float(price) if hashrate else 0
+    reward.network_hashrate = float(hashrate) if hashrate else 0
+    reward.difficulty = float(difficulty) if difficulty else 0
+    reward.emission_coin = float(emission) if emission else 0
+    reward.emission_usd = float(emissionUSD) if emissionUSD else 0
 
     coin.reward = reward
 
