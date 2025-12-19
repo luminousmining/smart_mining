@@ -1,8 +1,11 @@
+import os
 import time
 import random
 import logging
 import argparse
+import matplotlib.pyplot as plt
 
+from pathlib import Path
 from config import Config, ConfigBenchmark
 from api import (
     BinanceAPI,
@@ -17,6 +20,13 @@ from common import (
     PostgreSQL
 )
 
+
+class BenchRaw:
+
+    def __init__(self):
+        self.coin_name = ''
+        self.coin_tag = ''
+        self.coin_value = 0.0
 
 
 def initialize_logger(level: str) -> None:
@@ -37,12 +47,73 @@ def initialize_logger(level: str) -> None:
         level=log_level)
 
 
+def __draw_bench(bench: list, folder: str) -> None:
+    # Create folder if it doesn't exist
+    Path(folder).mkdir(parents=True, exist_ok=True)
+
+    # Check if there is data to display
+    if not bench or len(bench) == 0:
+        logging.warning("No benchmark data to display")
+        return
+
+    # Get all bench_names (e.g., 'emission_usd', 'hash_usd')
+    bench_names = list(bench[0].keys())
+
+    # Create a chart for each bench_name
+    for bench_name in bench_names:
+        # Dictionary to store data for each coin
+        # coin_tag -> {x: [loop_indices], y: [ranking positions]}
+        coin_data = {}
+
+        # Collect data for each loop iteration
+        for loop_index, loop_data in enumerate(bench):
+            if bench_name not in loop_data:
+                continue
+
+            # Iterate through coins with their ranking position (1-indexed)
+            for rank_position, raw in enumerate(loop_data[bench_name], start=1):
+                if raw.coin_tag not in coin_data:
+                    coin_data[raw.coin_tag] = {'x': [], 'y': [], 'name': raw.coin_name}
+
+                coin_data[raw.coin_tag]['x'].append(loop_index)
+                coin_data[raw.coin_tag]['y'].append(rank_position)
+
+        # Create the figure
+        plt.figure(figsize=(12, 8))
+
+        # Plot a line for each coin
+        for coin_tag, data in coin_data.items():
+            plt.plot(data['x'], data['y'], marker='o', label=f"{data['name']} ({coin_tag})", linewidth=2)
+
+        # Configure the chart
+        plt.xlabel('Loop Index', fontsize=12, fontweight='bold')
+        plt.ylabel('Ranking Position', fontsize=12, fontweight='bold')
+        plt.title(f'Benchmark: {bench_name}', fontsize=14, fontweight='bold')
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.grid(True, alpha=0.3)
+        
+        # Invert Y axis so rank 1 is at the top
+        plt.gca().invert_yaxis()
+        
+        # Set Y axis to show integer values only
+        plt.gca().yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+        
+        plt.tight_layout()
+
+        # Save the chart
+        filename = os.path.join(folder, f'bench_{bench_name}.png')
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        plt.close()
+
+        logging.info(f'Chart saved: {filename}')
+
+
 def get_base_data(pg: PostgreSQL) -> CoinManager:
     manager = CoinManager()
 
     raw = pg.request_all('SELECT * FROM coins')
 
-    logging.info(f'Listing of coins:')
+    logging.debug(f'Listing of coins:')
     for _, name, tag, algorithm, usd, usd_sec, difficulty, network_hashrate, hash_usd, emission_coin, emission_usd, market_cap in raw:
         coin = Coin()
         coin.name = name
@@ -63,37 +134,62 @@ def get_base_data(pg: PostgreSQL) -> CoinManager:
 
         manager.insert(coin)
 
-        logging.info(f'{coin.tag.upper()}')
+        logging.debug(f'{coin.tag.upper()}')
 
     return manager
 
 
+def __append_result(data: dict, filter: list, pg: PostgreSQL, bench_name: str, function_name: str) -> None:
+    data[bench_name] = []
+
+    rows = pg.request_all(f'select * FROM {function_name}()')
+    for name, tag, value in rows:
+        if tag.lower() in filter:
+            raw = BenchRaw()
+            raw.coin_name = name
+            raw.coin_tag = tag
+            raw.coin_value = value
+            data[bench_name].append(raw)
+
+
 def benchmark(config: ConfigBenchmark, pg: PostgreSQL, coin_manager: CoinManager) -> None:
 
-    for loop in range(0, config.loop):
+    bench_ffps = []
+    for loop_index in range(0, config.loop):
         # Print benchmark number iteration
-        logging.info(f'Benchmark [{loop}/{config.loop}]:')
+        logging.info(f'Benchmark[{loop_index + 1}/{config.loop}]:')
 
         # Apply random factor on all coins
         for name, coin in coin_manager._coins.items():
+            # Skip coin not follow
+            if coin.tag.lower() not in config.filter_coins:
+                continue
+
             # Get random factor
             factor_emission = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
             factor_network = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
-            factor_difficulty = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
+
+            if coin.tag in config.factor_emission_custom:
+                factor_custom = config.factor_emission_custom[coin.tag.lower()]
+                factor_emission = random.uniform(factor_custom['min'], factor_custom['max'])
 
             # Update coin value
-            coin.reward.emission_usd = coin.reward.emission_usd + (coin.reward.emission_usd * factor_emission)
-            coin.reward.network_hashrate = coin.reward.network_hashrate + (coin.reward.network_hashrate * factor_network)
+            logging.info(f'{coin.tag} - {coin.reward.emission_usd}')
+            coin.reward.emission_usd = max(0.0, coin.reward.emission_usd + (coin.reward.emission_usd * factor_emission))
+            coin.reward.network_hashrate = max(0.0, coin.reward.network_hashrate + (coin.reward.network_hashrate * factor_network))
+
             coin_manager.insert(coin, new_assign=True)
 
         # Update Database
-        logging.info('Updating Database!')
+        logging.info('🔄 Updating Database!')
         pg._update_coin(coin_manager)
 
-        # Wait
-        seconds = config.tick_rate_ms / 1000
-        logging.info(f'Waiting {seconds}s...')
-        time.sleep(seconds)
+        # Get Profiles result
+        bench_ffps.append({})
+        __append_result(bench_ffps[loop_index], config.filter_coins, pg, 'emission_usd', 'profile_emission_usd')
+        __append_result(bench_ffps[loop_index], config.filter_coins, pg, 'hash_ud', 'profile_hash_usd')
+
+    __draw_bench(bench_ffps, os.path.join('benchmark', 'ffps'))
 
 
 def run(config: Config):

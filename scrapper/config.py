@@ -40,12 +40,13 @@ class ConfigBenchmark:
 
     def __init__(self, data) -> None:
         self.loop = data['loop']
-        self.tick_rate_ms = data['tick_rate_ms']
+        self.filter_coins = data['filters']['coins']
         self.factor_emission_min = data['factor']['emission']['min']
         self.factor_emission_max = data['factor']['emission']['max']
         self.factor_network_min = data['factor']['network']['min']
         self.factor_network_max = data['factor']['network']['max']
 
+        self.factor_emission_custom = data['factor']['emission']['custom']
 
 class Config:
 
