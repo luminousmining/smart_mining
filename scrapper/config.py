@@ -36,6 +36,17 @@ class ConfigDB:
         self.update = False if 'update' not in data else data['update']
 
 
+class ConfigBenchmark:
+
+    def __init__(self, data) -> None:
+        self.loop = data['loop']
+        self.tick_rate_ms = data['tick_rate_ms']
+        self.factor_emission_min = data['factor']['emission']['min']
+        self.factor_emission_max = data['factor']['emission']['max']
+        self.factor_network_min = data['factor']['network']['min']
+        self.factor_network_max = data['factor']['network']['max']
+
+
 class Config:
 
     def __init__(self, filename):
@@ -53,3 +64,5 @@ class Config:
                 self.apis.what_to_mine = ConfigAPI(api_obj['whattomine']) if 'whattomine' in api_obj else None
                 self.apis.binance = ConfigAPI(api_obj['binance']) if 'binance' in api_obj else None
                 self.apis.minerstat = ConfigAPI(api_obj['minerstat']) if 'minerstat' in api_obj else None
+
+            self.benchmark = ConfigBenchmark(data['benchmark']) if 'benchmark' in data else None

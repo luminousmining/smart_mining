@@ -10,4 +10,16 @@ fi
 psql\
  -U $USERNAME\
  -d $DATABASE\
- -f $FILE_INIT_DB
+ -f coin.sql
+
+
+psql\
+ -U $USERNAME\
+ -d $DATABASE\
+ -f hardware.sql
+
+
+psql\
+ -U $USERNAME\
+ -d $DATABASE\
+ -f pool.sql

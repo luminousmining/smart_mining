@@ -94,14 +94,7 @@ class PostgreSQL:
 
         return True
 
-    def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
-        if not self.cursor:
-            logging.error(f'❌ Cursor is invalid')
-            return
-        if not self.connection:
-            logging.error(f'❌ Connection is invalid')
-            return
-
+    def _update_coin(self, coin_manager: CoinManager):
         for coin in coin_manager._coins.values():
             query = 'CALL insert_coin('\
                 f'\'{coin.name}\','\
@@ -118,6 +111,7 @@ class PostgreSQL:
                 f');'
             self.execute(query)
 
+    def _update_pool(self, pool_manager: PoolManager) -> None:
         for pool_name, pool in pool_manager._pools.items():
             pool_name = pool_name.replace('\'', '')
             for coin_name, coin_value in pool.coins.items():
@@ -133,6 +127,7 @@ class PostgreSQL:
                     ');'
                 self.execute(query)
 
+    def _update_hardware(self, hardware_manager: HardwareManager) -> None:
         for hardware in hardware_manager._hardwares:
             name = hardware['name']
             algo = hardware['algo']
@@ -144,13 +139,22 @@ class PostgreSQL:
 
             query = f'SELECT id FROM hardware WHERE name=\'{name}\';'
             hardware_id = self.request_one(query)[0]
-
             query = 'CALL insert_hardware_mining('\
                     f'{hardware_id},'\
                     f'\'{algo}\','\
                     f'{speed},'\
                     f'{power}'\
                     ');'
-
             self.execute(query)
 
+    def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+            return
+        if not self.connection:
+            logging.error(f'❌ Connection is invalid')
+            return
+
+        self._update_coin(coin_manager)
+        self._update_pool(pool_manager)
+        self._update_hardware(hardware_manager)

@@ -9,12 +9,17 @@ class Coin:
         self.algorithm = None
         self.reward = Reward()
 
-    def merge(self, other):
-        self.name = self.name if self.name else other.name
-        self.tag = self.tag if self.tag else other.tag
-        self.algorithm = self.algorithm if self.algorithm else other.algorithm
+    def merge(self, other, new_assign: bool = False):
+        if not new_assign:
+            self.name = self.name if self.name else other.name
+            self.tag = self.tag if self.tag else other.tag
+            self.algorithm = self.algorithm if self.algorithm else other.algorithm
+        else:
+            self.name = other.name if other.name else self.name
+            self.tag = other.tag if other.tag else self.tag
+            self.algorithm = other.algorithm if other.algorithm else self.algorithm
 
-        self.reward.merge(other.reward)
+        self.reward.merge(other.reward, new_assign=new_assign)
 
     def to_dict(self) -> dict:
         data = dict()

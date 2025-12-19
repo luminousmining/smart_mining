@@ -35,9 +35,9 @@ class CoinManager:
         with open(output_file, 'w') as fd:
             json.dump(data, fd, indent=4)
 
-    def insert(self, coin: Coin) -> None:
+    def insert(self, coin: Coin, new_assign: bool = False) -> None:
         if coin.name in self._coins:
-            self._coins[coin.name].merge(coin)
+            self._coins[coin.name].merge(coin, new_assign)
         else:
             for _, data in self._coins.items():
                 if data.tag == coin.tag:

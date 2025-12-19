@@ -168,9 +168,9 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
             price = float(api.get_price(symbol)['price'])
             coin = coin_manager.get_from_tag(tag)
             if coin and coin.reward:
-                if coin.name == 'zcash':
-                    logging.info(symbol)
-                    logging.info(coin.to_dict())
+                # if coin.name == 'zcash':
+                #     logging.info(symbol)
+                #     logging.info(coin.to_dict())
                 coin.reward.usd = price
 
 
@@ -182,7 +182,7 @@ def run(config: Config):
     pool_manager = PoolManager()
     hadrware_manager = HardwareManager()
 
-    # Database
+    # Database Connection
     pg = PostgreSQL(config)
     if not pg.connect():
         return
@@ -190,8 +190,8 @@ def run(config: Config):
     # APIs
     __hashrate_no(config, coin_manager)
     __what_to_mine(config, coin_manager)
-    __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
-    __binance(config, coin_manager)
+    # __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
+    # __binance(config, coin_manager)
 
     # Coin Manager update
     coin_manager.update()
@@ -201,11 +201,11 @@ def run(config: Config):
     pool_manager.dump(config.folder_output)
     hadrware_manager.dump(config.folder_output)
 
-    # PostgreSQL update database
+    # Database update
     if config.db.update:
         pg.update(coin_manager, pool_manager, hadrware_manager)
 
-    # PostgreSQL disconnect
+    # Database disconnect
     if pg.is_connected() is True:
         pg.disconnect()
 
