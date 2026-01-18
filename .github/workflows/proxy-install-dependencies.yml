@@ -122,8 +122,7 @@ jobs:
         cmake .. \
           -DCMAKE_BUILD_TYPE=Release \
           -DENABLE_LTO=OFF \
-          -DENABLE_NATIVE=OFF" \
-          -j$(nproc)
+          -DENABLE_NATIVE=OFF"
 
     - name: Build project
       working-directory: ./proxy/build
