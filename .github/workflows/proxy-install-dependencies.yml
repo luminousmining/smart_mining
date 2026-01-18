@@ -17,15 +17,23 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential \
-                                libstdc++-12-dev \
-                                gnutls-dev \
-                                cppcheck \
-                                checkinstall \
-                                clang-15 \
-                                clang++-15 \
-                                libx11-dev \
-                                wget
+        sudo apt-get install -y \
+          build-essential \
+          libstdc++-12-dev \
+          cppcheck \
+          checkinstall \
+          clang-15 \
+          clang++-15 \
+          wget \
+          git
+
+        # Clean apt cache
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+
+        # Clean apt cache
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
 
     - name: Install CMake 3.26.4
       run: |
@@ -57,34 +65,72 @@ jobs:
         path: |
           /usr/local/include/boost
           /usr/local/lib/libboost_*
-        key: boost-1.86.0-ubuntu-22.04
+        key: boost-1.86.0-ubuntu-22.04-static
 
     - name: Install Boost 1.86.0
       if: steps.cache-boost.outputs.cache-hit != 'true'
       run: |
+        # Download Boost 1.86.0
         wget --no-check-certificate https://archives.boost.io/release/1.86.0/source/boost_1_86_0.tar.gz
         tar -xzf boost_1_86_0.tar.gz
         cd boost_1_86_0
+
+        # Bootstrap Boost
         ./bootstrap.sh --prefix=/usr/local
-        sudo ./b2 install --with-atomic --with-chrono --with-filesystem \
-                          --with-system --with-json --with-thread \
-                          --with-serialization --with-program_options \
-                          -j$(nproc)
+
+        # Build and install libraries
+        ./b2 release -j$(nproc)
+        sudo ./b2 install -j$(nproc)
+
+        # CLEAN UP BOOST FILES
+        cd ..
+        echo "🧹 Cleaning up Boost installation files..."
+        sudo rm -rf boost_1_86_0 boost_1_86_0.tar.gz
+
+        echo "✅ Boost 1.86.0 installed successfully"
+
+    - name: Verify all dependencies
+      run: |
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🔍 DEPENDENCY VERIFICATION"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+        # CMake version
+        echo "✓ CMake: $(cmake --version | head -n1)"
+
+        # Boost version
+        if [ -f "/usr/local/include/boost/version.hpp" ]; then
+          BOOST_VERSION=$(grep "#define BOOST_LIB_VERSION" /usr/local/include/boost/version.hpp | awk '{print $3}' | tr -d '"')
+          echo "✓ Boost: ${BOOST_VERSION}"
+        else
+          echo "✗ Boost not found"
+          exit 1
+        fi
+
+        # Clang version
+        echo "✓ Clang: $(clang-15 --version | head -n1)"
+
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "✅ All dependencies verified successfully"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
     - name: Configure CMake
       working-directory: ./proxy
       run: |
         mkdir -p build
         cd build
-        cmake .. -DCMAKE_BUILD_TYPE=Release \
-                 -DOPENSSL_ROOT_DIR=/usr/local/ssl \
-                 -DBOOST_INCLUDEDIR=/usr/local/include/boost \
-                 -DBOOST_LIBRARYDIR=/usr/local/lib
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DENABLE_LTO=OFF \
+          -DENABLE_NATIVE=OFF" \
+          -j$(nproc)
 
     - name: Build project
       working-directory: ./proxy/build
       run: |
-        cmake --build . --config Release -j$(nproc)
+        cmake --build . \
+          --config Release \
+          -j$(nproc)
 
     - name: Verify build
       working-directory: ./proxy/build
