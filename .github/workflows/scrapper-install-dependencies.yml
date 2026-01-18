@@ -1,4 +1,4 @@
-name: Test Scrapper Installation Dependencies
+name: Test Aggregator Installation Dependencies
 
 on:
   push:
@@ -24,12 +24,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      working-directory: ./scrapper
+      working-directory: ./aggregator
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Verify installation
-      working-directory: ./scrapper
+      working-directory: ./aggregator
       run: |
         pip list
