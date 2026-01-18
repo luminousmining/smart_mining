@@ -1,0 +1,43 @@
+{
+    "log": "info",
+    "folder_output": "dataset",
+    "db":
+    {
+        "host": "localhost",
+        "name": "postgres",
+        "username": "postgres",
+        "password": "root",
+        "port": 5432
+    },
+    "api":
+    {
+        "hashrate_no":
+        {
+            "use_api": true,
+            "dump_file": "hashrate_no.json",
+            "api_key": "YOUR_API_KEY",
+            "host": "https://api.hashrate.no"
+        },
+        "whattomine":
+        {
+            "use_api": true,
+            "dump_file": "whattomine.json",
+            "api_key": "YOUR_API_KEY",
+            "host": "https://whattomine.com"
+        },
+        "binance":
+        {
+            "use_api": true,
+            "dump_file": "binance.json",
+            "api_key": "YOUR_API_KEY",
+            "host": "https://api.binance.com"
+        },
+        "minerstat":
+        {
+            "use_api": true,
+            "dump_file": "minerstat.json",
+            "api_key": "YOUR_API_KEY",
+            "host": "https://api.minerstat.com"
+        }
+    }
+}
