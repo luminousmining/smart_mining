@@ -22,13 +22,13 @@ Run
 docker run -d -p 3000:3000 --name smart_mining_api --network smart_mining_network smart_mining_api
 ```
 
-## Scrapper
+## Aggregator
 Build
 ```sh
-docker build -t smart_mining_scrapper .
+docker build -t smart_mining_aggregator .
 ```
 
 Run
 ```sh
-docker run -d --name smart_mining_scrapper --network smart_mining_network smart_mining_scrapper
+docker run -d --name smart_mining_aggregator --network smart_mining_network smart_mining_aggregator
 ```
