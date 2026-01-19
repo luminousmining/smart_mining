@@ -190,11 +190,8 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
         filtered.append(symbol_data)
 
     logging.info('🔄 update coins price...')
-    total_symbol = len(filtered)
-    for i in range(0, total_symbol):
-        data = filtered[i]
+    for data in filtered:
         symbol = data['symbol']
-        logging.info(f'🌐 [{symbol}] {i}/{total_symbol}')
         tag = data['baseAsset'].lower().replace('usd', '')
         raw = api.get_price(symbol)
         if 'price' not in raw:
@@ -203,9 +200,6 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
         price = float(raw['price'])
         coin = coin_manager.get_from_tag(tag)
         if coin and coin.reward:
-            # if coin.name == 'zcash':
-            #     logging.info(symbol)
-            #     logging.info(coin.to_dict())
             coin.reward.usd = price
 
 
