@@ -18,7 +18,7 @@ class ApiHTTP:
                 target = f'/{target}'
             endpoint = f'{self.host}{target}'
             response = requests.get(endpoint, headers=self.headers)
-            logging.debug(f'endpoint: {endpoint} - [{response.status_code}]')
+            logging.debug(f'🌐 endpoint: [{endpoint}] - [{response.status_code}]')
             body = response.json()
             return body
         except Exception as err:

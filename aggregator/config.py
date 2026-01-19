@@ -23,6 +23,7 @@ class ConfigAPIS:
         self.what_to_mine = None
         self.binance = None
         self.minerstat = None
+        self.coingecko = None
 
 
 class ConfigDB:
@@ -65,5 +66,6 @@ class Config:
                 self.apis.what_to_mine = ConfigAPI(api_obj['whattomine']) if 'whattomine' in api_obj else None
                 self.apis.binance = ConfigAPI(api_obj['binance']) if 'binance' in api_obj else None
                 self.apis.minerstat = ConfigAPI(api_obj['minerstat']) if 'minerstat' in api_obj else None
+                self.apis.coingecko = ConfigAPI(api_obj['coingecko']) if 'coingecko' in api_obj else None
 
             self.benchmark = ConfigBenchmark(data['benchmark']) if 'benchmark' in data else None

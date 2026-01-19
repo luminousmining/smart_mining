@@ -113,7 +113,7 @@ def get_base_data(pg: PostgreSQL) -> CoinManager:
 
     raw = pg.request_all('SELECT * FROM coins')
 
-    logging.debug(f'Listing of coins:')
+    logging.debug(f'🔍 Listing of coins:')
     for _, name, tag, algorithm, usd, usd_sec, difficulty, network_hashrate, hash_usd, emission_coin, emission_usd, market_cap in raw:
         coin = Coin()
         coin.name = name
@@ -134,7 +134,7 @@ def get_base_data(pg: PostgreSQL) -> CoinManager:
 
         manager.insert(coin)
 
-        logging.debug(f'{coin.tag.upper()}')
+        logging.debug(f'🔍 {coin.tag.upper()}')
 
     return manager
 

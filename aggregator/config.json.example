@@ -38,6 +38,13 @@
             "dump_file": "minerstat.json",
             "api_key": "YOUR_API_KEY",
             "host": "https://api.minerstat.com"
+        },
+        "_coingecko":
+        {
+            "use_api": true,
+            "dump_file": "coingeko.json",
+            "api_key": "YOUR_API_KEY",
+            "host": "https://api.coingecko.com/api/v3"
         }
     }
 }

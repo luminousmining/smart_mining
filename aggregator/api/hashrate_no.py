@@ -6,6 +6,7 @@ from api import ApiHTTP
 from config import ConfigAPI
 
 
+# https://www.hashrate.no/c/api
 class HashrateNoAPI(ApiHTTP):
 
     def __init__(self, config: ConfigAPI, folder_output: str):

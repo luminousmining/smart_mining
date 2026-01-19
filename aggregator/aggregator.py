@@ -4,6 +4,7 @@ import argparse
 from config import Config
 from api import (
     BinanceAPI,
+    CoinGeckoAPI,
     HashrateNoAPI,
     MinerStatAPI,
     WhatToMineAPI
@@ -42,10 +43,12 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
     logging.info('===== HASHRATE NO =====')
 
     if not config.apis.hashrate_no:
+        logging.info('🚮 Skipped!')
         return
 
-    logging.info('🔄 get coins informations....')
     api = HashrateNoAPI(config.apis.hashrate_no, config.folder_output)
+
+    logging.info('🔄 get coins informations....')
     coins = api.get_coins()
     for _, value in coins.items():
         coin = create_coin_by_hashrate_no(value)
@@ -53,10 +56,27 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
             coin_manager.insert(coin)
 
 
+def __coingecko(config: Config, coin_manager: CoinManager) -> None:
+    logging.info('===== HASHRATE NO =====')
+
+    if not config.apis.coingecko:
+        logging.info('🚮 Skipped!')
+        return
+
+    api = CoinGeckoAPI(config.apis.coingecko, config.folder_output)
+
+    logging.info('🔄 get list coins...')
+    coins = api.get_coins_list()
+    for coin in coins:
+        symbol = coin['symbol'].lower()
+        logging.info(f'{symbol}')
+
+
 def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
     logging.info('===== WHAT TO MINE =====')
 
     if not config.apis.what_to_mine:
+        logging.info('Skipped!')
         return
 
     logging.info('🔄 get coins informations....')
@@ -72,6 +92,7 @@ def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolMa
     logging.info('===== MINERSTAT =====')
 
     if not config.apis.minerstat:
+        logging.info('🚮 Skipped!')
         return
 
     api = MinerStatAPI(config.apis.minerstat, config.folder_output)
@@ -100,7 +121,7 @@ def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolMa
         for coin_name, item in coins.items():
             coin = coin_manager.get_from_tag(coin_name.lower())
             if not coin:
-                logging.debug(f'❌ Cannot find tag [{coin_name.lower()}] from pool [{pool.name}]')
+                logging.warning(f'⚠️ Cannot find tag [{coin_name.lower()}] from pool [{pool.name}]')
                 continue
             pool.coins[coin.name] = {}
 
@@ -149,29 +170,43 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
     logging.info('===== BINANCE =====')
 
     if not config.apis.binance:
+        logging.info('🚮 Skipped!')
         return
 
-    logging.info('🔄 get coins informations....')
+    symbol_prefix_skip = ['nicehash-', 'ausdt', 'usdt']
+
+    logging.info('🔄 get list coins...')
     api = BinanceAPI(config.apis.binance, config.folder_output)
     symbols = api.get_symbols()
-    for data in symbols:
+
+    logging.info('🔄 filter coins...')
+    filtered = []
+    for symbol_data in symbols:
+        symbol = symbol_data['symbol'].lower()
+        if any(item in symbol for item in symbol_prefix_skip):
+            continue
+        if not symbol.endswith('usd'):
+            continue
+        filtered.append(symbol_data)
+
+    logging.info('🔄 update coins price...')
+    total_symbol = len(filtered)
+    for i in range(0, total_symbol):
+        data = filtered[i]
         symbol = data['symbol']
-        symbol_lower = symbol.lower()
-        if 'nicehash-' in symbol_lower:
-            continue
-        if 'ausdt' in symbol_lower:
-            continue
-        if 'usdt' in symbol_lower:
-            continue
-        if symbol_lower[-3:] == 'usd':
-            tag = data['baseAsset'].lower().replace('usd', '')
-            price = float(api.get_price(symbol)['price'])
-            coin = coin_manager.get_from_tag(tag)
-            if coin and coin.reward:
-                # if coin.name == 'zcash':
-                #     logging.info(symbol)
-                #     logging.info(coin.to_dict())
-                coin.reward.usd = price
+        logging.info(f'🌐 [{symbol}] {i}/{total_symbol}')
+        tag = data['baseAsset'].lower().replace('usd', '')
+        raw = api.get_price(symbol)
+        if 'price' not in raw:
+            logging.error(f'❌ missing key "price" -> {raw}')
+            return
+        price = float(raw['price'])
+        coin = coin_manager.get_from_tag(tag)
+        if coin and coin.reward:
+            # if coin.name == 'zcash':
+            #     logging.info(symbol)
+            #     logging.info(coin.to_dict())
+            coin.reward.usd = price
 
 
 def run(config: Config):
@@ -190,8 +225,9 @@ def run(config: Config):
     # APIs
     __hashrate_no(config, coin_manager)
     __what_to_mine(config, coin_manager)
-    # __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
-    # __binance(config, coin_manager)
+    __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
+    __binance(config, coin_manager)
+    __coingecko(config, coin_manager)
 
     # Coin Manager update
     coin_manager.update()

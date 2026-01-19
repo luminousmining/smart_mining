@@ -1,4 +1,5 @@
 from api.api_http import ApiHTTP
+from api.coingecko import CoinGeckoAPI
 from api.binance import BinanceAPI
 from api.hashrate_no import HashrateNoAPI
 from api.minerstat import MinerStatAPI
