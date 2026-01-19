@@ -873,6 +873,7 @@ dist
 
 aggregator/config.json
 aggregator/dataset/
+aggregator/benchmark/ffps
 
 api/config.json
 config*.json
