@@ -3,7 +3,7 @@ DROP PROCEDURE IF EXISTS insert_coin;
 
 -----------------------------------------------------------
 DROP TABLE IF EXISTS coins CASCADE;
-
+DROP TABLE IF EXISTS coin_history CASCADE;
 
 -----------------------------------------------------------
 CREATE TABLE coins (
@@ -21,6 +21,23 @@ CREATE TABLE coins (
     market_cap NUMERIC
 );
 ALTER TABLE coins ADD CONSTRAINT unique_coin_name UNIQUE (name);
+
+-----------------------------------------------------------
+CREATE TABLE coin_history (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(32),
+    tag VARCHAR(32),
+    algorithm VARCHAR(32),
+    usd NUMERIC,
+    usd_sec NUMERIC,
+    difficulty NUMERIC,
+    network_hashrate NUMERIC,
+    hash_usd NUMERIC,
+    emission_coin NUMERIC,
+    emission_usd NUMERIC,
+    market_cap NUMERIC,
+    created_at TIMESTAMP NOT NULL DEFAULT now()
+);
 
 
 -----------------------------------------------------------
@@ -40,6 +57,9 @@ CREATE PROCEDURE insert_coin(
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    ----------------------------------------------------------------
+    -- 1) Current state (UPSERT)
+    ----------------------------------------------------------------
     INSERT INTO coins(
         name,
         tag,
@@ -76,5 +96,34 @@ BEGIN
         emission_coin     = EXCLUDED.emission_coin,
         emission_usd      = EXCLUDED.emission_usd,
         market_cap        = EXCLUDED.market_cap;
+
+    ----------------------------------------------------------------
+    -- 2) Historical record (store snapshot)
+    ----------------------------------------------------------------
+    INSERT INTO coin_history (
+        name,
+        tag,
+        algorithm,
+        usd,
+        usd_sec,
+        difficulty,
+        network_hashrate,
+        hash_usd,
+        emission_coin,
+        emission_usd,
+        market_cap
+    ) VALUES (
+        p_name,
+        p_tag,
+        p_algorithm,
+        p_usd,
+        p_usd_sec,
+        p_difficulty,
+        p_network_hashrate,
+        p_hash_usd,
+        p_emission_coin,
+        p_emission_usd,
+        p_market_cap
+    );
 END;
 $$;

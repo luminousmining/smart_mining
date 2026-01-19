@@ -154,13 +154,10 @@ def benchmark(config: ConfigBenchmark, pg: PostgreSQL, coin_manager: CoinManager
         logging.info(f'Benchmark[{loop_index + 1}/{config.loop}]:')
 
         # Apply random factor on all coins
-        for name, coin in coin_manager._coins.items():
+        for _, coin in coin_manager._coins.items():
             # Skip coin not follow
             if coin.tag.lower() not in config.filter_coins:
                 continue
-
-            current_coin = Coin()
-            current_coin.merge(coin)
 
             # Get random factor
             factor_emission = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
@@ -179,6 +176,8 @@ def benchmark(config: ConfigBenchmark, pg: PostgreSQL, coin_manager: CoinManager
                 factor_network = random.uniform(factor_custom_min, factor_custom_max)
 
             # Update coin value
+            current_coin = Coin()
+            current_coin.merge(coin)
             current_coin.reward.emission_usd = max(0.0, ((100.0 + factor_emission) * current_coin.reward.emission_usd) / 100)
             current_coin.reward.network_hashrate = max(0.0, ((100.0 + factor_network) * current_coin.reward.network_hashrate) / 100)
             logging.info(f'[{coin.tag}] | USD({coin.reward.emission_usd}) -> USD({current_coin.reward.emission_usd}) | NetHash({coin.reward.network_hashrate}) -> NetHash({current_coin.reward.network_hashrate})')
