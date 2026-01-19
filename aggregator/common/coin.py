@@ -77,8 +77,15 @@ def create_coin_by_what_to_mine(name: str, data: dict) -> Coin:
     reward = Reward()
     reward.difficulty = float(data['difficulty'])
     reward.network_hashrate = float(data['nethash'])
-    m = data['market_cap']
     reward.market_cap = float(data['market_cap'].replace('$', '').replace(',', ''))
+
+    seconds_by_day = float(86400)
+    block_reward = float(data['block_reward'])
+    block_time = float(data['block_time'])
+    if block_time > 0:
+        block_by_day = seconds_by_day / block_time
+        emission_usd = block_by_day * block_reward
+        reward.emission_usd = emission_usd
 
     coin.reward = reward
 

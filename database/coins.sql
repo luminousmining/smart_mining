@@ -2,7 +2,7 @@
 DROP PROCEDURE IF EXISTS insert_coin;
 
 -----------------------------------------------------------
-DROP TABLE IF EXISTS coins;
+DROP TABLE IF EXISTS coins CASCADE;
 
 
 -----------------------------------------------------------

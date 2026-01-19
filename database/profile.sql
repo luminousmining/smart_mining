@@ -16,7 +16,7 @@ BEGIN
     RETURN QUERY
     SELECT
         c.name,
-        UPPER(c.tag)::VARCHAR(32) AS tag,
+        c.tag,
         c.emission_usd
     FROM coins c
     ORDER BY c.emission_usd DESC;
@@ -37,7 +37,7 @@ BEGIN
     RETURN QUERY
     SELECT
         c.name,
-        UPPER(c.tag)::VARCHAR(32) AS tag,
+        c.tag,
         c.hash_usd
     FROM coins c
     WHERE c.hash_usd > 0

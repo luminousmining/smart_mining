@@ -7,12 +7,6 @@ import matplotlib.pyplot as plt
 
 from pathlib import Path
 from config import Config, ConfigBenchmark
-from api import (
-    BinanceAPI,
-    HashrateNoAPI,
-    MinerStatAPI,
-    WhatToMineAPI
-)
 from common import (
     Coin,
     Reward,
@@ -165,20 +159,31 @@ def benchmark(config: ConfigBenchmark, pg: PostgreSQL, coin_manager: CoinManager
             if coin.tag.lower() not in config.filter_coins:
                 continue
 
+            current_coin = Coin()
+            current_coin.merge(coin)
+
             # Get random factor
             factor_emission = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
             factor_network = random.uniform(config.factor_network_min, config.factor_emission_max) / 100
 
             if coin.tag in config.factor_emission_custom:
                 factor_custom = config.factor_emission_custom[coin.tag.lower()]
-                factor_emission = random.uniform(factor_custom['min'], factor_custom['max'])
+                factor_custom_min = factor_custom['min']
+                factor_custom_max = factor_custom['max']
+                factor_emission = random.uniform(factor_custom_min, factor_custom_max)
+
+            if coin.tag in config.factor_network_custom:
+                factor_custom = config.factor_network_custom[coin.tag.lower()]
+                factor_custom_min = factor_custom['min']
+                factor_custom_max = factor_custom['max']
+                factor_network = random.uniform(factor_custom_min, factor_custom_max)
 
             # Update coin value
-            logging.info(f'{coin.tag} - {coin.reward.emission_usd}')
-            coin.reward.emission_usd = max(0.0, coin.reward.emission_usd + (coin.reward.emission_usd * factor_emission))
-            coin.reward.network_hashrate = max(0.0, coin.reward.network_hashrate + (coin.reward.network_hashrate * factor_network))
+            current_coin.reward.emission_usd = max(0.0, ((100.0 + factor_emission) * current_coin.reward.emission_usd) / 100)
+            current_coin.reward.network_hashrate = max(0.0, ((100.0 + factor_network) * current_coin.reward.network_hashrate) / 100)
+            logging.info(f'[{coin.tag}] | USD({coin.reward.emission_usd}) -> USD({current_coin.reward.emission_usd}) | NetHash({coin.reward.network_hashrate}) -> NetHash({current_coin.reward.network_hashrate})')
 
-            coin_manager.insert(coin, new_assign=True)
+            coin_manager.insert(current_coin, new_assign=True)
 
         # Update Database
         logging.info('🔄 Updating Database!')

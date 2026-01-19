@@ -48,6 +48,7 @@ class ConfigBenchmark:
         self.factor_network_max = data['factor']['network']['max']
 
         self.factor_emission_custom = data['factor']['emission']['custom']
+        self.factor_network_custom = data['factor']['network']['custom']
 
 class Config:
 

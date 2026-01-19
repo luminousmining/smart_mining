@@ -10,16 +10,7 @@ fi
 psql\
  -U $USERNAME\
  -d $DATABASE\
- -f coin.sql
-
-
-psql\
- -U $USERNAME\
- -d $DATABASE\
- -f hardware.sql
-
-
-psql\
- -U $USERNAME\
- -d $DATABASE\
- -f pool.sql
+ -f coins.sql\
+ -f hardware.sql\
+ -f pool.sql\
+ -f profile.sql
