@@ -31,5 +31,4 @@ namespace network
         private:
             bool onVerifySSL(bool preverified, boost::asio::ssl::verify_context& ctx);
     };
-
 }

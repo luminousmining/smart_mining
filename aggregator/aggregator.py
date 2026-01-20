@@ -7,7 +7,8 @@ from api import (
     CoinGeckoAPI,
     HashrateNoAPI,
     MinerStatAPI,
-    WhatToMineAPI
+    WhatToMineAPI,
+    TwoMinersAPI
 )
 from common import (
     CoinManager,
@@ -203,6 +204,25 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
             coin.reward.usd = price
 
 
+def __2miners(config: Config, coin_manager: CoinManager):
+    logging.info('===== 2MINERS =====')
+
+    if not config.apis.two_miners:
+        logging.info('🚮 Skipped!')
+        return
+
+    api = TwoMinersAPI(config.apis.two_miners, config.folder_output)
+
+    # logging.info('🔄 Update blocks informations')
+    # blocks = api.get_blocks()
+
+    # logging.info('🔄 Update miners informations')
+    # miners = api.get_miners()
+
+    logging.info('🔄 Update state informations')
+    stats = api.get_stats()
+
+
 def run(config: Config):
     logging.info('🚀 Start aggregator!')
 
@@ -222,6 +242,7 @@ def run(config: Config):
     __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
     __binance(config, coin_manager)
     __coingecko(config, coin_manager)
+    __2miners(config, coin_manager)
 
     # Coin Manager update
     coin_manager.update()

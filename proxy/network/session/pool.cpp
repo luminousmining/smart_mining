@@ -1,3 +1,5 @@
+#include <functional>
+
 #include <boost/json.hpp>
 
 #include <common/log/log.hpp>
@@ -13,11 +15,11 @@ void network::session::Session::receivePacketPool()
             *poolData.stream->socket,
             poolData.stream->buffer,
             '\n',
-            boost::bind(
+            std::bind(
                 &network::session::Session::onReceivePacketPool,
                 this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
+                std::placeholders::_1 /*boost::asio::placeholders::error*/,
+                std::placeholders::_2 /*boost::asio::placeholders::bytes_transferred*/));
     }
     else
     {
@@ -25,11 +27,11 @@ void network::session::Session::receivePacketPool()
             poolData.stream->socket->next_layer(),
             poolData.stream->buffer,
             '\n',
-            boost::bind(
+            std::bind(
                 &network::session::Session::onReceivePacketPool,
                 this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
+                std::placeholders::_1 /*boost::asio::placeholders::error*/,
+                std::placeholders::_2 /*boost::asio::placeholders::bytes_transferred*/));
     }
 }
 

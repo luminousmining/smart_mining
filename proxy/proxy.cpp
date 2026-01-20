@@ -13,7 +13,7 @@ int main()
     logInfo() << "Start proxy";
 
     network::ServerTCP  proxy{ 7878 };
-    mining::Brain brain{};
+    mining::Brain       brain{};
 
     setLogLevel(common::TYPELOG::__DEBUG);
 

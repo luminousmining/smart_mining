@@ -45,6 +45,13 @@
             "dump_file": "coingeko.json",
             "api_key": "YOUR_API_KEY",
             "host": "https://api.coingecko.com/api/v3"
+        },
+        "2miners":
+        {
+            "use_api": true,
+            "dump_file": "",
+            "api_key": "",
+            "host": "https://<TAG>.2miners.com/api"
         }
     }
 }

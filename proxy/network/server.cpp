@@ -1,3 +1,5 @@
+#include <functional>
+
 #include <boost/asio.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 
@@ -33,6 +35,7 @@ bool network::ServerTCP::bind()
             return false;
         }
 
+        // TODO: pool thread + strand
         ioContext.run();
     }
     catch(boost::exception const& e)
@@ -59,12 +62,12 @@ bool network::ServerTCP::acceptAsync()
     acceptor.async_accept
     (
         stream->socket->next_layer(),
-        boost::bind
+        std::bind
         (
             &network::ServerTCP::handlerAccept,
             this,
             stream,
-            boost::asio::placeholders::error
+            std::placeholders::_1 /*boost::asio::placeholders::error*/
         )
     );
     return true;

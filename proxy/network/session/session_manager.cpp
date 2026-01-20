@@ -73,8 +73,7 @@ bool network::session::SessionManager::update()
             continue;
         }
 
-        // Duplicate line !
-        // En fonction du profile de la session
+        // TODO: Select profile use by session != database->profileUsdSec
         std::string const coinName{ profileManager->findBestCoin(session->minerData.table, database->profileUsdSec) };
 
         if (coinName != session->currentCoin.coinTag)

@@ -16,7 +16,7 @@ namespace network
     {
         uint32_t                port{ 0u };
         std::string             hostname{};
-        boost::asio::io_service ioService;
+        boost::asio::io_service ioService; // TODO: replace by io_context
         boost::thread           threadService{};
 
         network::IOStream* connect(std::string const& _hostname, uint32_t const _port);

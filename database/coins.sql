@@ -1,9 +1,11 @@
 -----------------------------------------------------------
 DROP PROCEDURE IF EXISTS insert_coin;
 
+
 -----------------------------------------------------------
 DROP TABLE IF EXISTS coins CASCADE;
 DROP TABLE IF EXISTS coin_history CASCADE;
+
 
 -----------------------------------------------------------
 CREATE TABLE coins (
@@ -21,6 +23,7 @@ CREATE TABLE coins (
     market_cap NUMERIC
 );
 ALTER TABLE coins ADD CONSTRAINT unique_coin_name UNIQUE (name);
+
 
 -----------------------------------------------------------
 CREATE TABLE coin_history (

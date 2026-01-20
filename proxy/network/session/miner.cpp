@@ -1,3 +1,5 @@
+#include <functional>
+
 #include <boost/exception/diagnostic_information.hpp>
 
 #include <common/log/log.hpp>
@@ -13,11 +15,11 @@ void network::session::Session::receivePacketMiner()
             *minerData.stream->socket,
             minerData.stream->buffer,
             '\n',
-            boost::bind(
+            std::bind(
                 &network::session::Session::onReceivePacketMiner,
                 this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
+                std::placeholders::_1  /*boost::asio::placeholders::error*/,
+                std::placeholders::_2 /*boost::asio::placeholders::bytes_transferred*/));
     }
     else
     {
@@ -25,11 +27,11 @@ void network::session::Session::receivePacketMiner()
             minerData.stream->socket->next_layer(),
             minerData.stream->buffer,
             '\n',
-            boost::bind(
+            std::bind(
                 &network::session::Session::onReceivePacketMiner,
                 this,
-                boost::asio::placeholders::error,
-                boost::asio::placeholders::bytes_transferred));
+                std::placeholders::_1 /*boost::asio::placeholders::error*/,
+                std::placeholders::_2 /*boost::asio::placeholders::bytes_transferred*/));
     }
 }
 
