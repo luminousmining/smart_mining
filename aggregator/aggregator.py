@@ -1,3 +1,4 @@
+import time
 import logging
 import argparse
 
@@ -8,7 +9,8 @@ from api import (
     HashrateNoAPI,
     MinerStatAPI,
     WhatToMineAPI,
-    TwoMinersAPI
+    TwoMinersAPI,
+    NanopoolAPI
 )
 from common import (
     CoinManager,
@@ -47,6 +49,8 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
         logging.info('🚮 Skipped!')
         return
 
+    start_time = time.time()
+
     api = HashrateNoAPI(config.apis.hashrate_no, config.folder_output)
 
     logging.info('🔄 get coins informations....')
@@ -56,6 +60,9 @@ def __hashrate_no(config: Config, coin_manager: CoinManager) -> None:
         if coin:
             coin_manager.insert(coin)
 
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
+
 
 def __coingecko(config: Config, coin_manager: CoinManager) -> None:
     logging.info('===== HASHRATE NO =====')
@@ -64,13 +71,17 @@ def __coingecko(config: Config, coin_manager: CoinManager) -> None:
         logging.info('🚮 Skipped!')
         return
 
+    start_time = time.time()
+
     api = CoinGeckoAPI(config.apis.coingecko, config.folder_output)
 
     logging.info('🔄 get list coins...')
     coins = api.get_coins_list()
     for coin in coins:
         symbol = coin['symbol'].lower()
-        logging.info(f'{symbol}')
+
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
 
 
 def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
@@ -80,6 +91,8 @@ def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
         logging.info('Skipped!')
         return
 
+    start_time = time.time()
+
     logging.info('🔄 get coins informations....')
     api = WhatToMineAPI(config.apis.what_to_mine, config.folder_output)
     coins = api.get_coins()
@@ -88,6 +101,9 @@ def __what_to_mine(config: Config, coin_manager: CoinManager) -> None:
         if coin:
             coin_manager.insert(coin)
 
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
+
 
 def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
     logging.info('===== MINERSTAT =====')
@@ -95,6 +111,8 @@ def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolMa
     if not config.apis.minerstat:
         logging.info('🚮 Skipped!')
         return
+
+    start_time = time.time()
 
     api = MinerStatAPI(config.apis.minerstat, config.folder_output)
 
@@ -166,6 +184,9 @@ def __miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolMa
                 speed=speed,
                 power=power)
 
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
+
 
 def __binance(config: Config, coin_manager: CoinManager) -> None:
     logging.info('===== BINANCE =====')
@@ -173,6 +194,8 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
     if not config.apis.binance:
         logging.info('🚮 Skipped!')
         return
+
+    start_time = time.time()
 
     symbol_prefix_skip = ['nicehash-', 'ausdt', 'usdt']
 
@@ -203,24 +226,57 @@ def __binance(config: Config, coin_manager: CoinManager) -> None:
         if coin and coin.reward:
             coin.reward.usd = price
 
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
 
-def __2miners(config: Config, coin_manager: CoinManager):
+
+def __2miners(config: Config, pool_manager: PoolManager) -> None:
     logging.info('===== 2MINERS =====')
 
     if not config.apis.two_miners:
         logging.info('🚮 Skipped!')
         return
 
+    start_time = time.time()
     api = TwoMinersAPI(config.apis.two_miners, config.folder_output)
 
-    # logging.info('🔄 Update blocks informations')
-    # blocks = api.get_blocks()
+    logging.info('🔄 Update blocks informations')
+    blocks = api.get_blocks()
 
-    # logging.info('🔄 Update miners informations')
-    # miners = api.get_miners()
+    logging.info('🔄 Update miners informations')
+    miners = api.get_miners()
 
     logging.info('🔄 Update state informations')
     stats = api.get_stats()
+
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
+
+
+def __nanopool(config: Config, pool_manager: PoolManager) -> None:
+    logging.info('===== NANOPOOL =====')
+
+    if not config.apis.two_miners:
+        logging.info('🚮 Skipped!')
+        return
+
+    start_time = time.time()
+    api = NanopoolAPI(config.apis.nanopool, config.folder_output)
+
+    logging.info('🔄 Update avg block time')
+    avg_blocks = api.get_avg_blocks()
+
+    logging.info('🔄 Update last block number')
+    last_blocks_number = api.get_last_block_number()
+
+    logging.info('🔄 Update block stats')
+    block_stats = api.get_block_stats()
+
+    logging.info('🔄 Update price')
+    prices = api.get_prices()
+
+    duration = time.time() - start_time
+    logging.info(f'🕐 synchro in {duration:.2f} seconds')
 
 
 def run(config: Config):
@@ -242,7 +298,8 @@ def run(config: Config):
     __miner_stat(config, coin_manager, pool_manager, hadrware_manager)
     __binance(config, coin_manager)
     __coingecko(config, coin_manager)
-    __2miners(config, coin_manager)
+    __2miners(config, pool_manager)
+    __nanopool(config, pool_manager)
 
     # Coin Manager update
     coin_manager.update()

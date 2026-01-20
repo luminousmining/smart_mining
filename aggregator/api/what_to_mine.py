@@ -11,14 +11,14 @@ class WhatToMineAPI(ApiHTTP):
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
-        self.dump_file = config.dump_file
         self.path_dump_file = os.path.join(folder_output, 'whattomine')
+        self.dump_file_coins = os.path.join(self.path_dump_file, 'coins.json')
 
         if not os.path.exists(self.path_dump_file):
             os.makedirs(self.path_dump_file)
 
     def get_coins(self) -> dict:
-        output_file = os.path.join(self.path_dump_file, self.dump_file)
+        output_file = self.dump_file_coins
 
         if self.use_api:
             coins = self.get('coins.json')

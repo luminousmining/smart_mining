@@ -12,7 +12,6 @@ class TwoMinersAPI(ApiHTTP):
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
-        self.dump_file = config.dump_file
         self.path_dump_file = os.path.join(folder_output, '2miners')
         self.dump_file_blocks = os.path.join(self.path_dump_file, 'blocks.json')
         self.dump_file_miners = os.path.join(self.path_dump_file, 'miners.json')
@@ -20,39 +19,17 @@ class TwoMinersAPI(ApiHTTP):
 
         self.supported_tags = (
             "ethw",
-            "solo-ethw",
             "etc",
-            "solo-etc",
             "erg",
-            "solo-erg",
-            # STOP SUPPORT "clo",
-            # STOP SUPPORT "solo-clo",
             "zec",
-            "solo-zec",
-            # STOP SUPPORT "zen",
-            # STOP SUPPORT "solo-zen",
-            # STOP SUPPORT "flux",
-            # STOP SUPPORT"solo-flux",
             "btg",
-            "solo-btg",
-            # STOP SUPPORT "xmr",
-            # STOP SUPPORT "solo-xmr",
-            # STOP SUPPORT "firo",
-            # STOP SUPPORT "solo-firo",
             "rvn",
-            "solo-rvn",
             "neox",
-            "solo-neox",
             "grin",
-            "solo-grin",
             "ctxc",
-            "solo-ctxc",
             "ae",
-            "solo-ae",
             "beam",
-            "solo-beam",
             "ckb",
-            "solo-ckb"
         )
 
         if not os.path.exists(self.path_dump_file):

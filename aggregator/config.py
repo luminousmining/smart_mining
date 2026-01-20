@@ -6,13 +6,11 @@ class ConfigAPI:
 
     def __init__(self, data) -> None:
         self.use_api = data['use_api']
-        self.dump_file = data['dump_file']
         self.host = data['host']
-        self.api_key = data['api_key']
+        self.api_key = data['api_key'] if 'api_key' in data else ''
 
     def __str__(self) -> str:
         return  f'use_api[{self.use_api}] - '\
-                f'dump_file[{self.dump_file}] - '\
                 f'host[{self.host}]'
 
 
@@ -25,6 +23,7 @@ class ConfigAPIS:
         self.minerstat = None
         self.coingecko = None
         self.two_miners = None
+        self.nanopool = None
 
 
 class ConfigDB:
@@ -70,5 +69,6 @@ class Config:
                 self.apis.minerstat = ConfigAPI(api_obj['minerstat']) if 'minerstat' in api_obj else None
                 self.apis.coingecko = ConfigAPI(api_obj['coingecko']) if 'coingecko' in api_obj else None
                 self.apis.two_miners = ConfigAPI(api_obj['2miners']) if '2miners' in api_obj else None
+                self.apis.nanopool = ConfigAPI(api_obj['nanopool']) if 'nanopool' in api_obj else None
 
             self.benchmark = ConfigBenchmark(data['benchmark']) if 'benchmark' in data else None

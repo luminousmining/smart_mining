@@ -11,10 +11,10 @@ class MinerStatAPI(ApiHTTP):
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
-        self.dump_file = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_coin.json'
-        self.dump_file_hardware = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_hardware.json'
-        self.dump_file_pool = f'{os.path.splitext(os.path.basename(config.dump_file))[0]}_pool.json'
         self.path_dump_file = os.path.join(folder_output, 'minerstat')
+        self.dump_file_coins = os.path.join(self.path_dump_file, 'coins.json')
+        self.dump_file_hardware =  os.path.join(self.path_dump_file, 'hardware.json')
+        self.dump_file_pool =  os.path.join(self.path_dump_file, 'pool.json')
 
         if self.use_api and config.api_key:
             self.update_header('X-API-Key', self.api_key)
@@ -23,7 +23,7 @@ class MinerStatAPI(ApiHTTP):
             os.makedirs(self.path_dump_file)
 
     def get_coins(self) -> dict:
-        output_file = os.path.join(self.path_dump_file, self.dump_file)
+        output_file = self.dump_file_coins
 
         if self.use_api:
             coins = self.get('/v2/coins')
@@ -37,7 +37,7 @@ class MinerStatAPI(ApiHTTP):
                 return json.load(fd)
 
     def get_hardware(self) -> dict:
-        output_file = os.path.join(self.path_dump_file, self.dump_file_hardware)
+        output_file = self.dump_file_hardware
 
         if self.use_api:
             hardwares = self.get('v2/hardware')
@@ -51,7 +51,7 @@ class MinerStatAPI(ApiHTTP):
                 return json.load(fd)
 
     def get_pools(self) -> dict:
-        output_file = os.path.join(self.path_dump_file, self.dump_file_pool)
+        output_file = self.dump_file_pool
 
         if self.use_api:
             pools = self.get('/v2/pools')

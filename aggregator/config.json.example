@@ -14,44 +14,40 @@
         "hashrate_no":
         {
             "use_api": true,
-            "dump_file": "hashrate_no.json",
             "api_key": "YOUR_API_KEY",
             "host": "https://api.hashrate.no"
         },
         "whattomine":
         {
             "use_api": true,
-            "dump_file": "whattomine.json",
-            "api_key": "YOUR_API_KEY",
             "host": "https://whattomine.com"
         },
         "binance":
         {
             "use_api": true,
-            "dump_file": "binance.json",
-            "api_key": "YOUR_API_KEY",
             "host": "https://api.binance.com"
         },
         "minerstat":
         {
             "use_api": true,
-            "dump_file": "minerstat.json",
             "api_key": "YOUR_API_KEY",
             "host": "https://api.minerstat.com"
         },
-        "_coingecko":
+        "coingecko":
         {
             "use_api": true,
-            "dump_file": "coingeko.json",
             "api_key": "YOUR_API_KEY",
             "host": "https://api.coingecko.com/api/v3"
         },
         "2miners":
         {
             "use_api": true,
-            "dump_file": "",
-            "api_key": "",
             "host": "https://<TAG>.2miners.com/api"
+        },
+        "nanopool":
+        {
+            "use_api": true,
+            "host": "https://api.nanopool.org/v1"
         }
     }
 }

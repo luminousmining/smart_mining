@@ -11,10 +11,10 @@ class BinanceAPI(ApiHTTP):
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
         self.use_api = config.use_api
-        self.dump_file = config.dump_file
         self.path_dump_file = os.path.join(folder_output, 'binance')
         self.path_dump_price = os.path.join(self.path_dump_file, 'price')
         self.path_dump_avg_price = os.path.join(self.path_dump_file, 'avg_price')
+        self.dump_file_symbols = os.path.join(self.path_dump_file, 'symbols.json')
 
         if not os.path.exists(self.path_dump_file):
             os.makedirs(self.path_dump_file)
@@ -26,7 +26,7 @@ class BinanceAPI(ApiHTTP):
             os.makedirs(self.path_dump_avg_price)
 
     def get_symbols(self) -> dict:
-        output_file = os.path.join(self.path_dump_file, self.dump_file)
+        output_file = self.dump_file_symbols
 
         if self.use_api:
             symbols = self.get('api/v3/exchangeInfo')['symbols']
