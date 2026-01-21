@@ -4,6 +4,7 @@ DROP PROCEDURE IF EXISTS insert_pool;
 
 -----------------------------------------------------------
 DROP TABLE IF EXISTS pools;
+DROP TABLE IF EXISTS pool_history;
 
 
 -----------------------------------------------------------
@@ -21,6 +22,20 @@ CREATE TABLE pools(
 ALTER TABLE pools ADD CONSTRAINT unique_pool UNIQUE (name, tag, algorithm);
 
 
+-----------------------------------------------------------
+CREATE TABLE pool_history(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(32),
+    website VARCHAR(64),
+    founded NUMERIC,
+    tag VARCHAR(32),
+    algorithm VARCHAR(32),
+    anonymous BOOLEAN,
+    registration BOOLEAN,
+    fee NUMERIC,
+    created_at TIMESTAMP NOT NULL DEFAULT now()
+);
+
 
 -----------------------------------------------------------
 CREATE PROCEDURE insert_pool(
@@ -36,6 +51,9 @@ CREATE PROCEDURE insert_pool(
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    ----------------------------------------------------------------
+    -- 1) Current state (UPSERT)
+    ----------------------------------------------------------------
     INSERT INTO pools(
         name,
         website,
@@ -61,5 +79,28 @@ BEGIN
         anonymous       = EXCLUDED.anonymous,
         registration    = EXCLUDED.registration,
         fee             = EXCLUDED.fee;
+
+    ----------------------------------------------------------------
+    -- 2) Historical record (store snapshot)
+    ----------------------------------------------------------------
+    INSERT INTO pools(
+        name,
+        website,
+        founded,
+        tag,
+        algorithm,
+        anonymous,
+        registration,
+        fee
+    ) VALUES (
+        p_name,
+        p_website,
+        p_founded,
+        p_tag,
+        p_algorithm,
+        p_anonymous,
+        p_registration,
+        p_fee
+    );
 END;
 $$;

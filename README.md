@@ -1,143 +1,223 @@
-# smart_mining
+# 🧠 Smart Mining
 
-## Archi
+Smart Mining is a modular system designed to automatically optimize cryptocurrency mining profitability by dynamically selecting the most profitable coins, pools, and algorithms in real time.  
+The project is based on a distributed architecture, built to be scalable, extensible, and performance‑oriented.  
+
+# 🎯 Project Goals
+
+* 📊 Collect reliable and up‑to‑date market and mining data
+* 🧮 Calculate real mining profitability
+* 🔄 Perform dynamic switching during mining
+* 💰 Maximize USD earnings
+* ⚙️ Enable customizable mining strategies through profiles
+
+# 🧩 Architecture Overview
 
 ```
 ┌──────────────────┐
 │ External APIs    │
-│ Blockchains      │
+│ - Binance        │
 │ - CoinGecko      │
-│ - Blockchain RPC │
-│ - Pool APIs      │
+│ - Hashrate.no    │
+│ - Minerstat      │
+│ - Nanopool       │
+│ - 2Miners        │
+│ - WhatToMine     │
 └────────┬─────────┘
          │ (1) Fetch data
-         │     - Prices
-         │     - Difficulty
-         │     - Hashrates
          ↓
 ┌──────────────────┐
 │   AGGREGATOR     │
-│  - Parse data    │
+│  - Collect       │
+│  - Normalize     │
 │  - Calculate     │
 │    profitability │
-│  - Transform     │
 └────────┬─────────┘
-         │ (2) INSERT/UPDATE
-         │     - Coins info
-         │     - Pools data
-         │     - Profitability
+         │ (2) Insert / Update
          ↓
 ┌──────────────────┐
 │   PostgreSQL     │
-│  Tables:         │
-│  - coins         │
-│  - pools         │
-│  - profitability │
-└──────────────────┘
-```
-
-```
-┌──────────────────┐
-│     Miner        │
-│   (End User)     │
+│  - Realtime data │
+│  - History data  │
 └────────┬─────────┘
-         │ (1) Connect to proxy
-         │     - Mining software
-         │     - Stratum protocol
+         │ (3) SQL Queries
          ↓
-┌──────────────────┐         (2) Request best pool
-│      PROXY       │         GET /api/best-pool?algo=sha256
-│  - Accept conn   │────────────────────────────────────┐
-│  - Authenticate  │                                    │
-└────────┬─────────┘                                    │
-         │                                              ↓
-         │                                    ┌──────────────────┐
-         │                                    │       API        │
-         │                                    │  - Query DB      │
-         │                                    │  - Calculate     │
-         │                                    │  - Return JSON   │
-         │                                    └────────┬─────────┘
-         │                                             │
-         │                                             │ (3) SQL Query
-         │                                             ↓
-         │                                    ┌──────────────────┐
-         │ (5) Redirect/Proxy connection      │   PostgreSQL     │
-         │     to selected pool               │  - Get pools     │
-         │                                    │  - Get profit    │
-         ↓                                    └────────┬─────────┘
 ┌──────────────────┐
-│  External Pool   │
-│  - Pool A        │
-│  - Pool B        │
-│  - Pool C        │
+│       API        │
+│  - REST          │
+│  - Decision data │
+└────────┬─────────┘
+         │ (4) Best strategy
+         ↓
+┌──────────────────┐
+│      PROXY       │
+│  - Stratum       │
+│  - Smart switch  │
+└────────┬─────────┘
+         │ (5) Redirect mining
+         ↓
+┌──────────────────┐
+│ External Pools   │
+│ Pool A / B / C   │
 └──────────────────┘
 ```
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        COMPLETE FLOW                            │
-└─────────────────────────────────────────────────────────────────┘
 
-External Sources                SmartMining                End Users
-       │                          │                         │
-       │    ┌──────────────┐      │                         │
-       └───→│ AGGREGATOR   │──────┤                         │
-            │ (Collector)  │      │                         │
-            └──────────────┘      │                         │
-                                  │                         │
-                            ┌─────▼──────┐                  │
-                            │ PostgreSQL │                  │
-                            │  Storage   │                  │
-                            └─────┬──────┘                  │
-                                  │                         │
-                            ┌─────▼──────┐                  │
-                            │    API     │                  │
-                            │ (Decision) │                  │
-                            └─────┬──────┘                  │
-                                  │                         │
-                            ┌─────▼──────┐                  │
-                            │   PROXY    │←─────────────────┘
-                            │  (Router)  │
-                            └─────┬──────┘
-                                  │
-                            ┌─────▼──────┐
-                            │External    │
-                            │Pools       │
-                            └────────────┘
-```
+# 📦 The 3 Repositories
+## 1️⃣ Aggregator
+📌 RoleCollect, normalize, and store all data required for Smart Mining.  
+  
+🛠️ Technology  
+- Python  
+  
+🔌 External APIs Used:
+* Binance
+* CoinGecko
+* Hashrate.no
+* Minerstat
+* Nanopool
+* 2Miners
+* WhatToMine
+
+## 📥 Features
+
+* Data collection:
+  * Coin prices
+  * Network difficulty
+  * Hashrates
+  * Mining pools
+  * Hardware performance
+* Profitability calculation
+* Real‑time data insertion
+* Historical data storage
+
+## ⏱️ Execution
+* Automatic
+* Runs every X seconds
+* Ensures data is always up to date
+
+# 2️⃣ API
+📌 RoleExpose data and act as the decision layer for the proxy.  
+  
+## 🛠️ Technology  
+- Node.js
+
+## 🔌 Features
+* REST endpoints
+* Access to real‑time and historical data
+* Additional calculations
+* Optimized JSON responses
+
+## 📍 Position in the architecture
+* Single interface between:
+* PostgreSQL
+* Proxy
+
+# 3️⃣ Proxy
+📌 RoleImplement real‑time Smart Mining logic.
+## 🛠️ Technology
+- C++ 20
+- Boost 1.86
+
+## ⚡ Features
+* TCP server
+* Stratum protocol implementation
+* Miner (mining software) connections
+* Support for:
+  * Multiple pools
+  * Multiple coins
+  * Multiple algorithms
+* Dynamic switching based on profitability
+
+## 🎯 Objective
+Continuously optimize mining yield and USD earnings.
+
+# 🔄 Global Workflow
+## Aggregator
+Fetches external data  
+Updates real‑time tables  
+Archives historical data  
+
+## API
+Exposes data via REST  
+Acts as the decision engine  
+
+## Proxy
+Queries the API  
+Manages connected miners  
+Applies Smart Mining strategies  
+
+# 🧠 Profile Concept
+A profile represents a user mining strategy.
+
+## 🔑 Principle
+* Each miner selects a profile upon connection
+* The proxy adapts its behavior based on this profile
+
+## 📋 Profile Examples
+* 💰 Mine the coin generating the highest USD
+* ⚡ Follow the most profitable hashrate in USD
+
+## ⚙️ Characteristics
+* Multiple profiles available
+* Fully customizable
+* Easily extensible
+
+# 🗄️ Database (PostgreSQL)
+## 📌 Main Tables
+| Table           | Description                      |
+| :-------------- | :------------------------------- |
+| coins           | Coin information at time T       |
+| coin_history    | Historical coin data             |
+| pools           | Pool information at time T       |
+| pool_history    | Historical pool data             |
+| hardware        | Hardware information (GPU / CPU) |
+| hardware_mining | Mining performance per hardware  |
 
 
-## Dockers
+## 🔍 Details
+* Realtime data
+  * coins
+  * pools
+* Historical data
+  * coin_history
+  * pool_history
+* Hardware data
+  * hardware: hardware specifications
+  * hardware_mining: hashrate, power usage, algorithms
 
-### Database
-Build
-```sh
+# 🐳 Docker
+## 📀 Database
+```bash
 docker build -t smart_mining_database .
+docker run -d \
+  -p 5432:5432 \
+  --name smart_mining_database \
+  --network smart_mining_network \
+  smart_mining_database
 ```
 
-Run
-```sh
-docker run -d -p 5432:5432 --name smart_mining_database --network smart_mining_network smart_mining_database
-```
-
-### API
-Build
-```sh
+## 🌐 API
+```bash
 docker build -t smart_mining_api .
+docker run -d \
+  -p 3000:3000 \
+  --name smart_mining_api \
+  --network smart_mining_network \
+  smart_mining_api
 ```
 
-Run
-```sh
-docker run -d -p 3000:3000 --name smart_mining_api --network smart_mining_network smart_mining_api
-```
-
-### Aggregator
-Build
-```sh
+## 🔁 Aggregator
+```bash
 docker build -t smart_mining_aggregator .
+docker run -d \
+  --name smart_mining_aggregator \
+  --network smart_mining_network \
+  smart_mining_aggregator
 ```
 
-Run
-```sh
-docker run -d --name smart_mining_aggregator --network smart_mining_network smart_mining_aggregator
-```
+
+# ✅ Summary
+The Aggregator collects and stores historical data.
+The API exposes the data and makes decisions.
+The Proxy applies Smart Mining strategies based on user profiles, to automatically optimize mining profitability.
