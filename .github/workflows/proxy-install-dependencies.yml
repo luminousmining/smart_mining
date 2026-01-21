@@ -119,10 +119,7 @@ jobs:
       run: |
         mkdir -p build
         cd build
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DENABLE_LTO=OFF \
-          -DENABLE_NATIVE=OFF"
+        cmake .. -DCMAKE_BUILD_TYPE=Release
 
     - name: Build project
       working-directory: ./proxy/build
@@ -132,8 +129,8 @@ jobs:
           -j$(nproc)
 
     - name: Verify build
-      working-directory: ./proxy/build
+      working-directory: ./proxy
       run: |
-        ls -lh ../bin/
-        file ../bin/proxy || true
-        file ../bin/proxy_test || true
+        ls -lh bin/
+        file bin/proxy || true
+        file bin/proxy_test || true
