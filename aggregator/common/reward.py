@@ -14,6 +14,7 @@ class Reward:
         self.market_cap = None
 
     def merge(self, other, new_assign: bool = False) -> None:
+        #######################################################################
         if not new_assign:
             self.usd = self.usd if self.usd else other.usd
             self.usd_sec = self.usd_sec if self.usd_sec else other.usd_sec

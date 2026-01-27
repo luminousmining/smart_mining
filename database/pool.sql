@@ -1,106 +1,91 @@
 -----------------------------------------------------------
 DROP PROCEDURE IF EXISTS insert_pool;
+DROP PROCEDURE IF EXISTS insert_pool_stats;
 
 
 -----------------------------------------------------------
 DROP TABLE IF EXISTS pools;
-DROP TABLE IF EXISTS pool_history;
+DROP TABLE IF EXISTS pool_stats;
+DROP TABLE IF EXISTS pool_stats_history;
 
 
 -----------------------------------------------------------
 CREATE TABLE pools(
     id SERIAL PRIMARY KEY,
     name VARCHAR(32),
-    website VARCHAR(64),
-    founded NUMERIC,
-    tag VARCHAR(32),
-    algorithm VARCHAR(32),
-    anonymous BOOLEAN,
-    registration BOOLEAN,
-    fee NUMERIC
+    tag VARCHAR(32)
 );
-ALTER TABLE pools ADD CONSTRAINT unique_pool UNIQUE (name, tag, algorithm);
+ALTER TABLE pools ADD CONSTRAINT unique_pool UNIQUE (name, tag);
 
 
 -----------------------------------------------------------
-CREATE TABLE pool_history(
+CREATE TABLE pool_stats(
     id SERIAL PRIMARY KEY,
     name VARCHAR(32),
-    website VARCHAR(64),
-    founded NUMERIC,
     tag VARCHAR(32),
-    algorithm VARCHAR(32),
-    anonymous BOOLEAN,
-    registration BOOLEAN,
-    fee NUMERIC,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    block_height NUMERIC,
+    mine_timestamp NUMERIC,
+    difficulty NUMERIC,
+    luck NUMERIC,
+    block_status VARCHAR(32)
 );
+ALTER TABLE pool_stats ADD CONSTRAINT unique_pool_stats UNIQUE (name, tag, block_height, mine_timestamp);
 
 
 -----------------------------------------------------------
 CREATE PROCEDURE insert_pool(
     p_name VARCHAR(32),
-    p_website VARCHAR(64),
-    p_founded NUMERIC,
-    p_tag VARCHAR(32),
-    p_algorithm VARCHAR(32),
-    p_anonymous BOOLEAN,
-    p_registration BOOLEAN,
-    p_fee NUMERIC
+    p_tag VARCHAR(32)
 )
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    ----------------------------------------------------------------
-    -- 1) Current state (UPSERT)
-    ----------------------------------------------------------------
     INSERT INTO pools(
         name,
-        website,
-        founded,
-        tag,
-        algorithm,
-        anonymous,
-        registration,
-        fee
+        tag
     ) VALUES (
         p_name,
-        p_website,
-        p_founded,
-        p_tag,
-        p_algorithm,
-        p_anonymous,
-        p_registration,
-        p_fee
+        p_tag
     )
-    ON CONFLICT (name, tag, algorithm) DO UPDATE
-    SET website         = EXCLUDED.website,
-        founded         = EXCLUDED.founded,
-        anonymous       = EXCLUDED.anonymous,
-        registration    = EXCLUDED.registration,
-        fee             = EXCLUDED.fee;
+    ON CONFLICT (name, tag) DO NOTHING;
+END;
+$$;
 
-    ----------------------------------------------------------------
-    -- 2) Historical record (store snapshot)
-    ----------------------------------------------------------------
-    INSERT INTO pools(
+
+-----------------------------------------------------------
+CREATE PROCEDURE insert_pool_stats(
+    p_name VARCHAR(32),
+    p_tag VARCHAR(32),
+    p_block_height NUMERIC,
+    p_mine_timestamp NUMERIC,
+    p_difficulty NUMERIC,
+    p_luck NUMERIC,
+    p_block_status VARCHAR(32)
+)
+LANGUAGE plpgsql
+AS $$BEGIN
+    INSERT INTO pool_stats(
         name,
-        website,
-        founded,
         tag,
-        algorithm,
-        anonymous,
-        registration,
-        fee
+        block_height,
+        mine_timestamp,
+        difficulty,
+        luck,
+        block_status
     ) VALUES (
         p_name,
-        p_website,
-        p_founded,
         p_tag,
-        p_algorithm,
-        p_anonymous,
-        p_registration,
-        p_fee
-    );
+        p_block_height,
+        p_mine_timestamp,
+        p_difficulty,
+        p_luck,
+        p_block_status
+    )
+    ON CONFLICT (name, tag, block_height, mine_timestamp) DO UPDATE
+    SET block_height    = EXCLUDED.block_height,
+        mine_timestamp  = EXCLUDED.mine_timestamp,
+        difficulty      = EXCLUDED.difficulty,
+        luck            = EXCLUDED.luck,
+        block_status    = EXCLUDED.block_status;
 END;
 $$;

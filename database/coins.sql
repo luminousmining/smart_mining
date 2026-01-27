@@ -27,7 +27,6 @@ ALTER TABLE coins ADD CONSTRAINT unique_coin_name UNIQUE (name);
 
 -----------------------------------------------------------
 CREATE TABLE coin_history (
-    id SERIAL PRIMARY KEY,
     name VARCHAR(32),
     tag VARCHAR(32),
     algorithm VARCHAR(32),

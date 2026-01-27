@@ -1,3 +1,4 @@
+import time
 import psycopg2
 import logging
 
@@ -114,18 +115,25 @@ class PostgreSQL:
     def _update_pool(self, pool_manager: PoolManager) -> None:
         for pool_name, pool in pool_manager._pools.items():
             pool_name = pool_name.replace('\'', '')
-            for coin_name, coin_value in pool.coins.items():
+            for coin in pool.coins.values():
                 query = 'CALL insert_pool('\
                     f'\'{pool_name}\','\
-                    f'\'{pool.website}\','\
-                    f'{pool.founded},'\
-                    f'\'{coin_name}\','\
-                    f'\'{coin_value["algorithm"]}\','\
-                    f'\'{coin_value["anonymous"]}\','\
-                    f'\'{coin_value["registration"]}\','\
-                    f'\'{coin_value["fee"]}\''\
+                    f'\'{coin.tag}\''\
                     ');'
                 self.execute(query)
+
+            for blocks in pool.blocks.values():
+                for block in blocks:
+                    query = 'CALL insert_pool_stats('\
+                        f'\'{pool_name}\','\
+                        f'\'{block.tag}\','\
+                        f'{block.height if block.height else 0},'\
+                        f'{block.timestamp if block.timestamp else 0},'\
+                        f'{block.difficulty if block.difficulty else 0},'\
+                        f'{block.luck if block.luck else 0},'\
+                        f'\'{block.status if block.status else str()}\''\
+                        ');'
+                    self.execute(query)
 
     def _update_hardware(self, hardware_manager: HardwareManager) -> None:
         for hardware in hardware_manager._hardwares:
@@ -148,6 +156,13 @@ class PostgreSQL:
             self.execute(query)
 
     def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
+        ###########################################################################
+        logging.info('===== POSTGRESQL =====')
+
+        #######################################################################
+        start_time = time.time()
+
+        #######################################################################
         if not self.cursor:
             logging.error(f'❌ Cursor is invalid')
             return
@@ -155,6 +170,11 @@ class PostgreSQL:
             logging.error(f'❌ Connection is invalid')
             return
 
-        self._update_coin(coin_manager)
+        #######################################################################
+        # self._update_coin(coin_manager)
         self._update_pool(pool_manager)
-        self._update_hardware(hardware_manager)
+        # self._update_hardware(hardware_manager)
+
+        ###########################################################################
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')

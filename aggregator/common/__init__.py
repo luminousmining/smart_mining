@@ -1,3 +1,7 @@
+from common.block import (
+    BLOCK_STATUS,
+    Block
+)
 from common.reward import Reward
 from common.coin import (
     Coin,
@@ -5,7 +9,10 @@ from common.coin import (
     create_coin_by_what_to_mine,
     update_coin_by_minerstat
 )
-from common.pool import Pool
+from common.pool import (
+    CoinPool,
+    Pool
+)
 from common.pool_manager import PoolManager
 from common.coin_manager import CoinManager
 from common.hardware_manager import HardwareManager

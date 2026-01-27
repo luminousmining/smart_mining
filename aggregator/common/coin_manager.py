@@ -1,6 +1,7 @@
-import logging
 import os
 import json
+import time
+import logging
 
 from common import Coin
 
@@ -16,24 +17,37 @@ class CoinManager:
             logging.info(f'{coin.name}: {coin.tag},{coin.algorithm}')
 
     def dump(self, folder_output: str) -> None:
+        ###########################################################################
+        logging.info('===== COIN MANAGER =====')
+
+        #######################################################################
+        start_time = time.time()
+
+        ###########################################################################
         path_folder = os.path.join(folder_output, 'coin_manager')
         if os.path.exists(path_folder) is False:
             os.makedirs(path_folder)
         output_file = os.path.join(path_folder, 'data.json')
 
-        logging.debug(f'📥 Dumping coins in {output_file}')
-
+        ###########################################################################
+        logging.info(f'📥 Dumping coins in {output_file}')
         coins = dict()
-        for _, coin in self._coins.items():
+        for coin in self._coins.values():
             coins[coin.name] = coin.to_dict()
 
+        ###########################################################################
         data = {
             'algorithms': self._algorithms,
             'coins': coins
         }
 
+        ###########################################################################
         with open(output_file, 'w') as fd:
             json.dump(data, fd, indent=4)
+
+        ###########################################################################
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
 
     def insert(self, coin: Coin, new_assign: bool = False) -> None:
         if coin.name in self._coins:

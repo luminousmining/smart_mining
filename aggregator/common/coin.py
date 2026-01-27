@@ -10,6 +10,7 @@ class Coin:
         self.reward = Reward()
 
     def merge(self, other, new_assign: bool = False):
+        #######################################################################
         if not new_assign:
             self.name = self.name if self.name else other.name
             self.tag = self.tag if self.tag else other.tag
@@ -19,6 +20,7 @@ class Coin:
             self.tag = other.tag if other.tag else self.tag
             self.algorithm = other.algorithm if other.algorithm else self.algorithm
 
+        #######################################################################
         self.reward.merge(other.reward, new_assign=new_assign)
 
     def to_dict(self) -> dict:
@@ -33,23 +35,28 @@ class Coin:
 
 
 def create_coin_by_hashrate_no(data: dict) -> Coin:
+    #######################################################################
     coin = Coin()
 
+    #######################################################################
     coin.name = data['name'].lower()
     coin.tag = data['ticker'].lower()
     coin.algorithm = data['algorithm'].lower().replace('-', '')
 
+    #######################################################################
     if coin.tag.lower() == "nicehash":
         return None
     if 'nicehash' in coin.name.lower():
         return None
 
+    #######################################################################
     price = data['price']['USD']
     hashrate =  data['network']['hashrate']
     difficulty =  data['network']['difficulty']
     emission =  data['network']['emission']
     emissionUSD =  data['network']['emissionUSD']
 
+    #######################################################################
     reward = Reward()
     reward.usd = float(price) if hashrate else 0
     reward.network_hashrate = float(hashrate) if hashrate else 0
@@ -57,28 +64,35 @@ def create_coin_by_hashrate_no(data: dict) -> Coin:
     reward.emission_coin = float(emission) if emission else 0
     reward.emission_usd = float(emissionUSD) if emissionUSD else 0
 
+    #######################################################################
     coin.reward = reward
 
+    #######################################################################
     return coin
 
 
 def create_coin_by_what_to_mine(name: str, data: dict) -> Coin:
+    #######################################################################
     coin = Coin()
 
+    #######################################################################
     coin.name = name
     coin.tag = data['tag'].lower()
     coin.algorithm = data['algorithm'].lower().replace('-', '')
 
+    #######################################################################
     if coin.tag.lower() == "nicehash":
         return None
     if 'nicehash' in coin.name.lower():
         return None
 
+    #######################################################################
     reward = Reward()
     reward.difficulty = float(data['difficulty'])
     reward.network_hashrate = float(data['nethash'])
     reward.market_cap = float(data['market_cap'].replace('$', '').replace(',', ''))
 
+    #######################################################################
     seconds_by_day = float(86400)
     block_reward = float(data['block_reward'])
     block_time = float(data['block_time'])
@@ -87,12 +101,15 @@ def create_coin_by_what_to_mine(name: str, data: dict) -> Coin:
         emission_usd = block_by_day * block_reward
         reward.emission_usd = emission_usd
 
+    #######################################################################
     coin.reward = reward
 
+    #######################################################################
     return coin
 
 
 def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
+    #######################################################################
     coin.reward.usd = float(data['price']) if data['price'] != -1 else coin.reward.usd
     coin.reward.network_hashrate = float(data['network_hashrate']) if data['network_hashrate'] != -1 else coin.reward.network_hashrate
     coin.reward.difficulty = float(data['difficulty']) if data['difficulty'] != -1 else coin.reward.difficulty
