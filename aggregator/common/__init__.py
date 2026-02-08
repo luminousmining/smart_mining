@@ -13,6 +13,7 @@ from common.pool import (
     CoinPool,
     Pool
 )
+from common.aggregator_mode import AGGREGATOR_MODE
 from common.pool_manager import PoolManager
 from common.coin_manager import CoinManager
 from common.hardware_manager import HardwareManager
