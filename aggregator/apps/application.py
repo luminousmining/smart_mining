@@ -114,7 +114,7 @@ def run_application(config: Config) -> None:
         thmCoin.process('miner_stat')
         thmCoin.process('nanopool')
 
-    time.sleep(0.1)  # évite le CPU à 100 %
+        time.sleep(0.1)
 
 
     # Database disconnect
