@@ -3,31 +3,22 @@ import logging
 
 from config import Config
 from api import (
-    BinanceAPI,
-    CoinGeckoAPI,
-    HashrateNoAPI,
     MinerStatAPI,
-    WhatToMineAPI,
     TwoMinersAPI,
     NanopoolAPI
 )
 from common import (
     CoinManager,
-    HardwareManager,
-    PostgreSQL,
     Pool,
     CoinPool,
     Block,
     BLOCK_STATUS,
-    PoolManager,
-    create_coin_by_what_to_mine,
-    create_coin_by_hashrate_no,
-    update_coin_by_minerstat
+    PoolManager
 )
 
 
 def workflow_pool_miner_stat(config: Config, coin_manager: CoinManager, pool_manager: PoolManager) -> None:
-    logging.info('===== MINERSTAT =====')
+    logging.info('===== WORKFLOW MINERSTAT POOL =====')
 
     ###########################################################################
     if not config.apis.minerstat:
@@ -81,7 +72,7 @@ def workflow_pool_miner_stat(config: Config, coin_manager: CoinManager, pool_man
 
 
 def workflow_pool_nanopool(config: Config, pool_manager: PoolManager) -> None:
-    logging.info('===== NANOPOOL =====')
+    logging.info('===== WORKFLOW NANOPOOL POOL =====')
 
     ###########################################################################
     if not config.apis.two_miners:
@@ -111,7 +102,7 @@ def workflow_pool_nanopool(config: Config, pool_manager: PoolManager) -> None:
 
 def workflow_pool_2miners(config: Config, pool_manager: PoolManager) -> None:
     ###########################################################################
-    logging.info('===== 2MINERS =====')
+    logging.info('===== WORKFLOW 2MINERS POOL =====')
 
     ###########################################################################
     if not config.apis.two_miners:

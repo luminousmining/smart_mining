@@ -7,15 +7,11 @@ from api import (
     CoinGeckoAPI,
     HashrateNoAPI,
     MinerStatAPI,
-    WhatToMineAPI,
-    TwoMinersAPI,
-    NanopoolAPI
+    WhatToMineAPI
 )
 from common import (
     CoinManager,
     HardwareManager,
-    Pool,
-    PoolManager,
     create_coin_by_what_to_mine,
     create_coin_by_hashrate_no,
     update_coin_by_minerstat
@@ -23,7 +19,7 @@ from common import (
 
 
 def workflow_coin_binance(config: Config, coin_manager: CoinManager) -> None:
-    logging.info('===== BINANCE =====')
+    logging.info('===== WORKFLOW BINANCE COIN =====')
 
     ###########################################################################
     if not config.apis.binance:
@@ -72,7 +68,7 @@ def workflow_coin_binance(config: Config, coin_manager: CoinManager) -> None:
 
 
 def workflow_coin_coingecko(config: Config, coin_manager: CoinManager) -> None:
-    logging.info('===== HASHRATE NO =====')
+    logging.info('===== WORKFLOW COINGECKO COIN =====')
 
     ###########################################################################
     if not config.apis.coingecko:
@@ -97,7 +93,7 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager) -> None:
 
 
 def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager) -> None:
-    logging.info('===== HASHRATE NO =====')
+    logging.info('===== WORKFLOW HASHRATE NO COIN =====')
 
     ###########################################################################
     if not config.apis.hashrate_no:
@@ -124,7 +120,7 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager) -> None
 
 
 def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware_manager: HardwareManager) -> None:
-    logging.info('===== MINERSTAT =====')
+    logging.info('===== WORKFLOW MINERSTAT COIN =====')
 
     ###########################################################################
     if not config.apis.minerstat:
@@ -179,7 +175,7 @@ def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware
 
 
 def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager) -> None:
-    logging.info('===== WHAT TO MINE =====')
+    logging.info('===== WORKFLOW WHAT TO MINE COIN =====')
 
     ###########################################################################
     if not config.apis.what_to_mine:
