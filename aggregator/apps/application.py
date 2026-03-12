@@ -116,7 +116,6 @@ def run_application(config: Config) -> None:
 
         time.sleep(0.1)
 
-
     # Database disconnect
     if pg.is_connected() is True:
         pg.disconnect()
