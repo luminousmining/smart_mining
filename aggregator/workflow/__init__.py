@@ -10,3 +10,8 @@ from workflow.pool import (
     workflow_pool_miner_stat,
     workflow_pool_2miners
 )
+from workflow.managers import (
+    workflow_pool_manager,
+    workflow_coin_manager,
+    workflow_database_manager
+)

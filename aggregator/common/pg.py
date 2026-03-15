@@ -171,9 +171,9 @@ class PostgreSQL:
             return
 
         #######################################################################
-        # self._update_coin(coin_manager)
+        self._update_coin(coin_manager)
         self._update_pool(pool_manager)
-        # self._update_hardware(hardware_manager)
+        self._update_hardware(hardware_manager)
 
         ###########################################################################
         duration = time.time() - start_time

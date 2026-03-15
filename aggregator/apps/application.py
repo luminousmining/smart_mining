@@ -20,6 +20,11 @@ from workflow import (
     workflow_pool_miner_stat,
     workflow_pool_2miners
 )
+from workflow import (
+    workflow_pool_manager,
+    workflow_coin_manager,
+    workflow_database_manager
+)
 
 
 def get_seconds(seconds: int) -> int:
@@ -100,6 +105,12 @@ def run_application(config: Config) -> None:
     thmPool.add_handler('2miner', get_seconds(5), workflow_pool_2miners, config, pool_manager)
     thmPool.add_handler('miner_stat', get_seconds(10), workflow_pool_miner_stat, config, coin_manager, pool_manager)
     thmPool.add_handler('nanopool', get_seconds(1), workflow_pool_nanopool, config, pool_manager)
+
+    # Timer Handlers Managers
+    thmPool = TimerHandlerManager()
+    thmPool.add_handler('coin_manager', get_seconds(30), workflow_pool_manager, config, pool_manager)
+    thmPool.add_handler('pool_manager', get_seconds(30), workflow_coin_manager, config, pool_manager)
+    thmPool.add_handler('database', get_seconds(30), workflow_database_manager, config, pg, coin_manager, pool_manager)
 
     while app_is_running():
         # Timer Coins
