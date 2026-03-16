@@ -37,6 +37,27 @@ class ConfigDB:
         self.update = False if 'update' not in data else data['update']
 
 
+class ConfigTimers:
+
+    def __init__(self, data) -> None:
+        coins = data.get('coins', {})
+        self.hashrate_no = coins.get('hashrate_no', 3)
+        self.what_to_mine = coins.get('what_to_mine', 5)
+        self.miner_stat_coin = coins.get('miner_stat', 12)
+        self.binance = coins.get('binance', 8)
+        self.coingecko = coins.get('coingecko', 20)
+
+        pools = data.get('pools', {})
+        self.two_miners = pools.get('2miners', 5)
+        self.miner_stat_pool = pools.get('miner_stat', 10)
+        self.nanopool = pools.get('nanopool', 1)
+
+        managers = data.get('managers', {})
+        self.coin_manager = managers.get('coin_manager', 30)
+        self.pool_manager = managers.get('pool_manager', 30)
+        self.database = managers.get('database', 30)
+
+
 class ConfigBenchmark:
 
     def __init__(self, data) -> None:
@@ -70,5 +91,7 @@ class Config:
                 self.apis.coingecko = ConfigAPI(api_obj['coingecko']) if 'coingecko' in api_obj else None
                 self.apis.two_miners = ConfigAPI(api_obj['2miners']) if '2miners' in api_obj else None
                 self.apis.nanopool = ConfigAPI(api_obj['nanopool']) if 'nanopool' in api_obj else None
+
+            self.timers = ConfigTimers(data['timers']) if 'timers' in data else ConfigTimers({})
 
             self.benchmark = ConfigBenchmark(data['benchmark']) if 'benchmark' in data else None

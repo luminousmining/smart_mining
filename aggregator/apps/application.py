@@ -92,25 +92,27 @@ def run_application(config: Config) -> None:
     if not pg.connect():
         return
 
+    t = config.timers
+
     # Timer Handlers Coins
     thmCoin = TimerHandlerManager()
-    thmCoin.add_handler('hashrate_no', get_seconds(3), workflow_coin_hashrate_no, config, coin_manager)
-    thmCoin.add_handler('what_to_mine', get_seconds(5), workflow_coin_what_to_mine, config, coin_manager)
-    thmCoin.add_handler('miner_stat', get_seconds(12), workflow_coin_miner_stat, config, coin_manager, hadrware_manager)
-    thmCoin.add_handler('binance', get_seconds(8), workflow_coin_binance, config, coin_manager)
-    thmCoin.add_handler('coingecko', get_seconds(20), workflow_coin_coingecko, config, coin_manager)
+    thmCoin.add_handler('hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager)
+    thmCoin.add_handler('what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager)
+    thmCoin.add_handler('miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hadrware_manager)
+    thmCoin.add_handler('binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager)
+    thmCoin.add_handler('coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
-    thmPool.add_handler('2miner', get_seconds(5), workflow_pool_2miners, config, pool_manager)
-    thmPool.add_handler('miner_stat', get_seconds(10), workflow_pool_miner_stat, config, coin_manager, pool_manager)
-    thmPool.add_handler('nanopool', get_seconds(1), workflow_pool_nanopool, config, pool_manager)
+    thmPool.add_handler('2miner', get_seconds(t.two_miners), workflow_pool_2miners, config, pool_manager)
+    thmPool.add_handler('miner_stat', get_seconds(t.miner_stat_pool), workflow_pool_miner_stat, config, coin_manager, pool_manager)
+    thmPool.add_handler('nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager)
 
     # Timer Handlers Managers
-    thmPool = TimerHandlerManager()
-    thmPool.add_handler('coin_manager', get_seconds(30), workflow_pool_manager, config, pool_manager)
-    thmPool.add_handler('pool_manager', get_seconds(30), workflow_coin_manager, config, pool_manager)
-    thmPool.add_handler('database', get_seconds(30), workflow_database_manager, config, pg, coin_manager, pool_manager)
+    thmManager = TimerHandlerManager()
+    thmManager.add_handler('coin_manager', get_seconds(t.coin_manager), workflow_pool_manager, config, pool_manager)
+    thmManager.add_handler('pool_manager', get_seconds(t.pool_manager), workflow_coin_manager, config, pool_manager)
+    thmManager.add_handler('database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager)
 
     while app_is_running():
         # Timer Coins
@@ -121,9 +123,14 @@ def run_application(config: Config) -> None:
         thmCoin.process('coingecko')
 
         # Timer Pools
-        thmCoin.process('2miner')
-        thmCoin.process('miner_stat')
-        thmCoin.process('nanopool')
+        thmPool.process('2miner')
+        thmPool.process('miner_stat')
+        thmPool.process('nanopool')
+
+        # Timer Managers
+        thmManager.process('coin_manager')
+        thmManager.process('pool_manager')
+        thmManager.process('database')
 
         time.sleep(0.1)
 

@@ -12,7 +12,7 @@ class ApiHTTP:
     def update_header(self, key: str, value: any) -> None:
         self.headers[key] = value
 
-    def get(self, target: str, header: dict={}, host_override: str='') -> dict:
+    def get(self, target: str, host_override: str='') -> dict:
         try:
             host = host_override if host_override else self.host
             if target[0] != '/' and host != '/':
@@ -20,6 +20,8 @@ class ApiHTTP:
             endpoint = f'{host}{target}'
             response = requests.get(endpoint, headers=self.headers)
             logging.debug(f'🌐 endpoint: [{endpoint}] - [{response.status_code}]')
+            if response.status_code == 409:
+                return {}
             body = response.json()
             return body
         except Exception as err:

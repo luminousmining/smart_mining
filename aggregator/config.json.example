@@ -49,5 +49,28 @@
             "use_api": true,
             "host": "https://api.nanopool.org/v1"
         }
+    },
+    "timers":
+    {
+        "coins":
+        {
+            "hashrate_no": 3,
+            "what_to_mine": 5,
+            "miner_stat": 12,
+            "binance": 8,
+            "coingecko": 20
+        },
+        "pools":
+        {
+            "2miners": 5,
+            "miner_stat": 10,
+            "nanopool": 1
+        },
+        "managers":
+        {
+            "coin_manager": 30,
+            "pool_manager": 30,
+            "database": 30
+        }
     }
 }
