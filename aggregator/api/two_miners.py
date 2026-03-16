@@ -42,7 +42,7 @@ class TwoMinersAPI(ApiHTTP):
             all_blocks = {}
             for tag in self.supported_tags:
                 host_override = self.host.replace('<TAG>', tag)
-                blocks = self.get('blocks', {}, host_override)
+                blocks = self.get('blocks', host_override)
                 all_blocks[tag] = blocks
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
@@ -60,7 +60,7 @@ class TwoMinersAPI(ApiHTTP):
             all_miners = {}
             for tag in self.supported_tags:
                 host_override = self.host.replace('<TAG>', tag)
-                miners = self.get('miners', {}, host_override)
+                miners = self.get('miners', host_override)
                 all_miners[tag] = miners
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
@@ -78,7 +78,7 @@ class TwoMinersAPI(ApiHTTP):
             all_stats = {}
             for tag in self.supported_tags:
                 host_override = self.host.replace('<TAG>', tag)
-                stats = self.get('stats', {}, host_override)
+                stats = self.get('stats', host_override)
                 all_stats[tag] = stats
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
