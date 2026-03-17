@@ -1,5 +1,4 @@
 import time
-import logging
 
 from config import Config
 from common import (

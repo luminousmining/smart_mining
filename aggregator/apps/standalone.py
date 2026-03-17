@@ -5,7 +5,6 @@ This module orchestrates the collection and processing of cryptocurrency and min
 from multiple external sources. It manages the lifecycle of data retrieval, processing, storage,
 and database synchronization.
 """
-import logging
 
 from config import Config
 from common import (

@@ -21,10 +21,18 @@ def initialize_logger(level: str) -> None:
     elif level == 'info':
         log_level = logging.INFO
 
-    logging.basicConfig(
-        format='[%(levelname)s][%(asctime)s]: %(message)s',
-        datefmt='%m/%d/%Y %I:%M:%S %p',
-        level=log_level)
+    formatter = logging.Formatter(
+        fmt='[%(levelname)s][%(asctime)s]: %(message)s',
+        datefmt='%m/%d/%Y %I:%M:%S %p'
+    )
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+
+    file_handler = logging.FileHandler('aggregator.log')
+    file_handler.setFormatter(formatter)
+
+    logging.basicConfig(level=log_level, handlers=[console_handler, file_handler])
 
 
 if __name__ == '__main__':
