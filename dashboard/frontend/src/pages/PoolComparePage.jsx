@@ -11,21 +11,38 @@ import DataTable from '../components/DataTable';
 
 const PALETTE = ['#00d4aa', '#6366f1', '#f59e0b', '#ef4444', '#a78bfa', '#34d399', '#f472b6', '#60a5fa'];
 const METRICS  = [
-  { key: 'luck',       label: 'Luck',       fmt: (v) => `${(Number(v) * 100).toFixed(1)}%` },
+  { key: 'luck',       label: 'Luck',       fmt: (v) => `${Number(v).toFixed(1)}%` },
   { key: 'difficulty', label: 'Difficulty', fmt: (v) => Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) },
 ];
 
+const STATUS_PRIORITY = { matured: 3, immature: 2, candidate: 1 };
+
+function deduplicateBlocks(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = `${row.name}|${row.tag}|${row.block_height}`;
+    const existing = map.get(key);
+    const rowPrio   = STATUS_PRIORITY[row.block_status?.toLowerCase()] ?? 0;
+    const existPrio = existing ? (STATUS_PRIORITY[existing.block_status?.toLowerCase()] ?? 0) : -1;
+    if (!existing || rowPrio > existPrio) map.set(key, row);
+  }
+  return [...map.values()];
+}
+
 function mergePoolData(stats, pools, metricKey) {
-  // x-axis = block_height (numeric), one value per pool
   const byPool = {};
   pools.forEach((p) => { byPool[p] = {}; });
+
+  const blockToTime = {};
   stats.forEach((row) => {
     if (!byPool[row.name]) return;
     byPool[row.name][Number(row.block_height)] = Number(row[metricKey]);
+    if (row.mine_timestamp) blockToTime[Number(row.block_height)] = Number(row.mine_timestamp) * 1000;
   });
+
   const allBlocks = [...new Set(stats.map((r) => Number(r.block_height)))].sort((a, b) => a - b);
   return allBlocks.map((h) => {
-    const item = { block: h };
+    const item = { block: h, time: blockToTime[h] ?? null };
     pools.forEach((p) => { item[p] = byPool[p]?.[h] ?? null; });
     return item;
   });
@@ -44,8 +61,9 @@ function summaryRows(stats, pools) {
       pool,
       blocks:     rows.length,
       avgLuck:    lucks.length ? lucks.reduce((a, b) => a + b, 0) / lucks.length : null,
-      confirmed:  statuses['confirmed'] ?? 0,
-      orphaned:   statuses['orphaned'] ?? 0,
+      candidate:  statuses['candidate'] ?? 0,
+      immature:   statuses['immature']  ?? 0,
+      matured:    statuses['matured']   ?? 0,
       color:      PALETTE[i % PALETTE.length],
     };
   });
@@ -53,9 +71,15 @@ function summaryRows(stats, pools) {
 
 const CustomTooltip = ({ active, payload, label, metricFmt }) => {
   if (!active || !payload?.length) return null;
+  const item = payload[0]?.payload;
   return (
     <div style={{ background: '#0d0e1a', border: '1px solid #2a2c45', borderRadius: 8, padding: '10px 14px', fontSize: 12, minWidth: 160 }}>
-      <div style={{ color: '#6b6d8a', marginBottom: 8, fontSize: 11 }}>Block #{Number(label).toLocaleString()}</div>
+      <div style={{ color: '#6b6d8a', marginBottom: 4, fontSize: 11 }}>
+        {label ? new Date(label).toLocaleString() : ''}
+      </div>
+      <div style={{ color: '#3a3c55', marginBottom: 8, fontSize: 11 }}>
+        Block #{Number(item?.block).toLocaleString()}
+      </div>
       {payload.map((p) => (
         <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 3 }}>
           <span style={{ color: p.color, fontWeight: 600 }}>{p.dataKey}</span>
@@ -66,19 +90,20 @@ const CustomTooltip = ({ active, payload, label, metricFmt }) => {
   );
 };
 
-export default function PoolComparePage() {
+export default function PoolComparePage({ refreshInterval = 30_000 }) {
   const [allStats, setAllStats]   = useState([]);
   const [tags, setTags]           = useState([]);
-  const [tagFilter, setTagFilter] = useState('');
-  const [selected, setSelected]   = useState([]);
-  const [metric, setMetric]       = useState('luck');
+  const [tagFilter, setTagFilter]       = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [selected, setSelected]         = useState([]);
+  const [metric, setMetric]             = useState('luck');
   const [loading, setLoading]     = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
 
   const load = useCallback(async () => {
     try {
       const [st, tg] = await Promise.all([api.poolStats(tagFilter || undefined), api.poolTags()]);
-      setAllStats(st);
+      setAllStats(deduplicateBlocks(st));
       setTags(tg);
       setLastUpdate(new Date());
     } finally {
@@ -88,7 +113,7 @@ export default function PoolComparePage() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load]);
 
@@ -102,13 +127,25 @@ export default function PoolComparePage() {
   useEffect(() => { setSelected([]); }, [tagFilter]);
 
   const filteredStats = useMemo(
-    () => selected.length ? allStats.filter((r) => selected.includes(r.name)) : allStats,
-    [allStats, selected]
+    () => allStats.filter((r) =>
+      (!selected.length  || selected.includes(r.name)) &&
+      (!statusFilter     || r.block_status === statusFilter)
+    ),
+    [allStats, selected, statusFilter]
   );
 
   const displayPools = selected.length ? selected : availablePools;
   const metricDef    = METRICS.find((m) => m.key === metric) ?? METRICS[0];
   const chartData    = useMemo(() => mergePoolData(filteredStats, displayPools, metric), [filteredStats, displayPools, metric]);
+
+  const yDomain = useMemo(() => {
+    const vals = chartData.flatMap((d) => displayPools.map((p) => d[p])).filter((v) => v != null && !isNaN(v));
+    if (!vals.length) return ['auto', 'auto'];
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const pad = (max - min) * 0.1 || 10;
+    return [min - pad, max + pad];
+  }, [chartData, displayPools]);
   const summary      = useMemo(() => summaryRows(filteredStats, displayPools), [filteredStats, displayPools]);
 
   const togglePool = (p) =>
@@ -119,12 +156,13 @@ export default function PoolComparePage() {
     { key: 'blocks',    label: 'Blocks',    align: 'right' },
     { key: 'avgLuck',   label: 'Avg Luck',  align: 'right', render: (v) => {
       if (v == null) return null;
-      const pct = Number(v) * 100;
+      const pct = Number(v);
       const color = pct >= 100 ? '#22c55e' : pct >= 80 ? '#f59e0b' : '#ef4444';
       return <span style={{ color, fontWeight: 600 }}>{pct.toFixed(1)}%</span>;
     }},
-    { key: 'confirmed', label: 'Confirmed', align: 'right', render: (v) => <span style={{ color: '#22c55e' }}>{v ?? 0}</span> },
-    { key: 'orphaned',  label: 'Orphaned',  align: 'right', render: (v) => <span style={{ color: v > 0 ? '#ef4444' : '#4a4c6a' }}>{v ?? 0}</span> },
+    { key: 'candidate', label: '🧱 Candidate', align: 'right', render: (v) => <span style={{ color: v > 0 ? '#f59e0b' : '#4a4c6a' }}>{v ?? 0}</span> },
+    { key: 'immature',  label: '⏳ Immature',  align: 'right', render: (v) => <span style={{ color: v > 0 ? '#6366f1' : '#4a4c6a' }}>{v ?? 0}</span> },
+    { key: 'matured',   label: '💰 Matured',   align: 'right', render: (v) => <span style={{ color: v > 0 ? '#22c55e' : '#4a4c6a' }}>{v ?? 0}</span> },
   ];
 
   const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()} · refresh 30s` : 'Loading…';
@@ -140,6 +178,13 @@ export default function PoolComparePage() {
             <select style={s.select} value={tagFilter} onChange={(e) => setTagFilter(e.target.value)}>
               <option value="">All coins</option>
               {tags.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <span style={s.filterLabel}>Status</span>
+            <select style={s.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="candidate">Candidate</option>
+              <option value="immature">Immature</option>
+              <option value="matured">Matured</option>
             </select>
           </div>
         }
@@ -195,17 +240,18 @@ export default function PoolComparePage() {
                   <LineChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="1 4" stroke="#1a1b2e" vertical={false} />
                     {metric === 'luck' && (
-                      <ReferenceLine y={1} stroke="#3a3c55" strokeDasharray="4 4" />
+                      <ReferenceLine y={100} stroke="#3a3c55" strokeDasharray="4 4" />
                     )}
                     <XAxis
-                      dataKey="block"
-                      tickFormatter={(v) => `#${Number(v).toLocaleString()}`}
+                      dataKey="time"
+                      tickFormatter={(v) => v ? new Date(v).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
                       tick={{ fontSize: 10, fill: '#3a3c55' }}
                       tickLine={false}
                       axisLine={false}
                       interval="preserveStartEnd"
                     />
                     <YAxis
+                      domain={yDomain}
                       tickFormatter={metricDef.fmt}
                       tick={{ fontSize: 10, fill: '#3a3c55' }}
                       tickLine={false}
@@ -222,10 +268,24 @@ export default function PoolComparePage() {
                         key={pool}
                         type="monotone"
                         dataKey={pool}
-                        stroke={PALETTE[i % PALETTE.length]}
+                        stroke={metric === 'luck' ? '#6b6d8a' : PALETTE[i % PALETTE.length]}
                         strokeWidth={1.5}
-                        dot={{ r: 3, fill: PALETTE[i % PALETTE.length], strokeWidth: 0 }}
-                        activeDot={{ r: 4, strokeWidth: 0 }}
+                        dot={metric === 'luck'
+                          ? (props) => {
+                              const luck = Number(props.payload?.[pool]);
+                              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
+                              return <circle key={props.key} cx={props.cx} cy={props.cy} r={4} fill={fill} />;
+                            }
+                          : { r: 3, fill: PALETTE[i % PALETTE.length], strokeWidth: 0 }
+                        }
+                        activeDot={metric === 'luck'
+                          ? (props) => {
+                              const luck = Number(props.payload?.[pool]);
+                              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
+                              return <circle key={props.key} cx={props.cx} cy={props.cy} r={6} fill={fill} />;
+                            }
+                          : { r: 4, strokeWidth: 0 }
+                        }
                         connectNulls={false}
                       />
                     ))}

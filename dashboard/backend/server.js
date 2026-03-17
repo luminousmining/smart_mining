@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const { exec } = require('child_process');
 const { Pool } = require('pg');
 
 const app = express();
@@ -14,14 +15,6 @@ const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '',
 });
-
-const INTERVALS = {
-  '1h':  "now() - interval '1 hour'",
-  '24h': "now() - interval '24 hours'",
-  '7d':  "now() - interval '7 days'",
-  '30d': "now() - interval '30 days'",
-  'all': null,
-};
 
 // ── Coins ─────────────────────────────────────────────────────────────────────
 
@@ -47,25 +40,18 @@ app.get('/api/coin-names', async (req, res) => {
 
 app.get('/api/coin-history', async (req, res) => {
   try {
-    const { name, range = '24h' } = req.query;
-    const interval = INTERVALS[range] ?? INTERVALS['24h'];
-
-    let query = `
-      SELECT name, tag, usd, difficulty, network_hashrate, hash_usd,
-             emission_usd, market_cap, created_at
-      FROM coin_history
-    `;
+    const { name, from, to } = req.query;
     const params = [];
+    const conditions = [];
 
-    if (name) {
-      query += ' WHERE name = $1';
-      params.push(name);
-      if (interval) query += ` AND created_at >= ${interval}`;
-    } else if (interval) {
-      query += ` WHERE created_at >= ${interval}`;
-    }
+    if (name) { params.push(name); conditions.push(`name = $${params.length}`); }
+    if (from) { params.push(from); conditions.push(`created_at >= $${params.length}::date`); }
+    if (to)   { params.push(to);   conditions.push(`created_at < ($${params.length}::date + interval '1 day')`); }
 
+    let query = `SELECT name, tag, usd, difficulty, network_hashrate, hash_usd, emission_usd, market_cap, created_at FROM coin_history`;
+    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
     query += ' ORDER BY created_at ASC';
+
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -76,25 +62,21 @@ app.get('/api/coin-history', async (req, res) => {
 // Multi-coin history for comparison view
 app.get('/api/coin-history-multi', async (req, res) => {
   try {
-    const { names, range = '24h' } = req.query;
+    const { names, from, to } = req.query;
     if (!names) return res.json([]);
 
     const nameList = names.split(',').map(n => n.trim()).filter(Boolean);
     if (!nameList.length) return res.json([]);
 
-    const interval = INTERVALS[range] ?? INTERVALS['24h'];
+    const params = [...nameList];
     const placeholders = nameList.map((_, i) => `$${i + 1}`).join(', ');
+    const conditions = [`name IN (${placeholders})`];
 
-    let query = `
-      SELECT name, tag, usd, difficulty, network_hashrate, hash_usd,
-             emission_usd, market_cap, created_at
-      FROM coin_history
-      WHERE name IN (${placeholders})
-    `;
-    if (interval) query += ` AND created_at >= ${interval}`;
-    query += ' ORDER BY created_at ASC';
+    if (from) { params.push(from); conditions.push(`created_at >= $${params.length}::date`); }
+    if (to)   { params.push(to);   conditions.push(`created_at < ($${params.length}::date + interval '1 day')`); }
 
-    const result = await pool.query(query, nameList);
+    const query = `SELECT name, tag, usd, difficulty, network_hashrate, hash_usd, emission_usd, market_cap, created_at FROM coin_history WHERE ${conditions.join(' AND ')} ORDER BY created_at ASC`;
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -160,12 +142,16 @@ app.get('/api/pool-names', async (req, res) => {
 // Pool history: stats for a single pool ordered by mine_timestamp
 app.get('/api/pool-history', async (req, res) => {
   try {
-    const { name, tag } = req.query;
+    const { name, tag, from, to } = req.query;
     if (!name) return res.json([]);
+
     const params = [name];
-    let query = 'SELECT * FROM pool_stats WHERE name = $1';
-    if (tag) { query += ' AND tag = $2'; params.push(tag); }
-    query += ' ORDER BY mine_timestamp ASC';
+    const conditions = ['name = $1'];
+    if (tag)  { params.push(tag);  conditions.push(`tag = $${params.length}`); }
+    if (from) { params.push(from); conditions.push(`mine_timestamp >= EXTRACT(EPOCH FROM $${params.length}::date)::bigint`); }
+    if (to)   { params.push(to);   conditions.push(`mine_timestamp < (EXTRACT(EPOCH FROM ($${params.length}::date + interval '1 day'))::bigint)`); }
+
+    const query = `SELECT * FROM pool_stats WHERE ${conditions.join(' AND ')} ORDER BY mine_timestamp ASC`;
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
@@ -183,6 +169,14 @@ app.get('/api/pool-tags', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Services ──────────────────────────────────────────────────────────────────
+
+app.get('/api/aggregator-status', (req, res) => {
+  exec('tmux has-session -t aggregator', (error) => {
+    res.json({ running: !error });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

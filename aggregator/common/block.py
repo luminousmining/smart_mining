@@ -19,12 +19,13 @@ class Block:
     def merge(self, other, new_assign: bool=False) -> None:
         #######################################################################
         if not new_assign:
-            self.tag = self.tag if self.tag else other.tag
-            self.height = self.height if self.height else other.height
-            self.timestamp = self.timestamp if self.timestamp else other.timestamp
-            self.difficulty = self.difficulty if self.difficulty else other.difficulty
-            self.luck = self.luck if self.luck else other.luck
-            self.status = self.status if self.status else other.status
+            if self.status != BLOCK_STATUS.MATURED:
+                self.tag = self.tag if self.tag else other.tag
+                self.height = self.height if self.height else other.height
+                self.timestamp = self.timestamp if self.timestamp else other.timestamp
+                self.difficulty = self.difficulty if self.difficulty else other.difficulty
+                self.luck = self.luck if self.luck else other.luck
+                self.status = self.status if self.status else other.status
         else:
             self.tag = other.tag if other.tag else self.tag
             self.height = other.height if other.height else self.height

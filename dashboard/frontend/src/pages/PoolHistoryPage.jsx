@@ -14,24 +14,52 @@ const STATUS = {
   pending:   '#f59e0b',
 };
 
+const STATUS_PRIORITY = { matured: 3, immature: 2, candidate: 1 };
+
+function deduplicateBlocks(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = `${row.name}|${row.tag}|${row.block_height}`;
+    const existing = map.get(key);
+    const rowPrio = STATUS_PRIORITY[row.block_status?.toLowerCase()] ?? 0;
+    const existPrio = existing ? (STATUS_PRIORITY[existing.block_status?.toLowerCase()] ?? 0) : -1;
+    if (!existing || rowPrio > existPrio) map.set(key, row);
+  }
+  return [...map.values()];
+}
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
+  const item = payload[0]?.payload;
   return (
     <div style={{ background: '#0d0e1a', border: '1px solid #2a2c45', borderRadius: 8, padding: '10px 14px', fontSize: 12, minWidth: 180 }}>
-      <div style={{ color: '#6b6d8a', marginBottom: 6, fontSize: 11 }}>
+      <div style={{ color: '#6b6d8a', marginBottom: 4, fontSize: 11 }}>
         {label ? new Date(Number(label) * 1000).toLocaleString() : ''}
       </div>
-      {payload.map((p) => (
-        <div key={p.dataKey} style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 3 }}>
-          <span style={{ color: p.color }}>{p.name}</span>
-          <span style={{ color: '#e4e4f0', fontVariantNumeric: 'tabular-nums' }}>{p.value != null ? p.formattedValue : '—'}</span>
-        </div>
-      ))}
+      <div style={{ color: '#3a3c55', marginBottom: 8, fontSize: 11 }}>
+        Block #{item?.block_height != null ? Number(item.block_height).toLocaleString() : '—'}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 3 }}>
+        <span style={{ color: '#6b6d8a' }}>Pool</span>
+        <span style={{ color: '#e4e4f0', fontWeight: 600 }}>{item?.name ?? '—'}</span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+        <span style={{ color: '#6b6d8a' }}>Luck</span>
+        <span style={{ color: Number(item?.luck) >= 100 ? '#22c55e' : Number(item?.luck) >= 80 ? '#f59e0b' : '#ef4444', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+          {item?.luck != null ? `${Number(item.luck).toFixed(1)}%` : '—'}
+        </span>
+      </div>
     </div>
   );
 };
 
 function LuckChart({ data }) {
+  const vals  = data.map((d) => Number(d.luck)).filter((v) => !isNaN(v));
+  const min   = vals.length ? Math.min(...vals) : 0;
+  const max   = vals.length ? Math.max(...vals) : 200;
+  const pad   = (max - min) * 0.1 || 10;
+  const domain = [min - pad, max + pad];
+
   return (
     <Card style={{ marginBottom: 12 }}>
       <div style={s.chartHeader}>
@@ -40,7 +68,7 @@ function LuckChart({ data }) {
       <ResponsiveContainer width="100%" height={220}>
         <LineChart data={data} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="1 4" stroke="#1a1b2e" vertical={false} />
-          <ReferenceLine y={1} stroke="#3a3c55" strokeDasharray="4 4" />
+          <ReferenceLine y={100} stroke="#3a3c55" strokeDasharray="4 4" />
           <XAxis
             dataKey="mine_timestamp"
             tickFormatter={(v) => new Date(Number(v) * 1000).toLocaleDateString([], { month: 'short', day: 'numeric' })}
@@ -50,29 +78,30 @@ function LuckChart({ data }) {
             interval="preserveStartEnd"
           />
           <YAxis
-            domain={['auto', 'auto']}
-            tickFormatter={(v) => `${(Number(v) * 100).toFixed(0)}%`}
+            domain={domain}
+            tickFormatter={(v) => `${Number(v).toFixed(0)}%`}
             tick={{ fontSize: 10, fill: '#3a3c55' }}
             tickLine={false}
             axisLine={false}
             width={52}
           />
-          <Tooltip
-            content={<CustomTooltip />}
-            formatter={(v, name) => [`${(Number(v) * 100).toFixed(1)}%`, 'Luck']}
-          />
+          <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
             dataKey="luck"
             name="Luck"
-            stroke="#00d4aa"
+            stroke="#6b6d8a"
             strokeWidth={1.5}
             dot={(props) => {
-              const status = props.payload?.block_status?.toLowerCase();
-              const fill = STATUS[status] ?? '#00d4aa';
-              return <circle key={props.key} cx={props.cx} cy={props.cy} r={3} fill={fill} />;
+              const luck = Number(props.payload?.luck);
+              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
+              return <circle key={props.key} cx={props.cx} cy={props.cy} r={4} fill={fill} />;
             }}
-            activeDot={{ r: 4, strokeWidth: 0 }}
+            activeDot={(props) => {
+              const luck = Number(props.payload?.luck);
+              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
+              return <circle key={props.key} cx={props.cx} cy={props.cy} r={6} fill={fill} />;
+            }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -104,10 +133,30 @@ function DifficultyChart({ data }) {
             axisLine={false}
             width={64}
           />
-          <Tooltip
-            content={<CustomTooltip />}
-            formatter={(v, name) => [Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }), 'Difficulty']}
-          />
+          <Tooltip content={({ active, payload, label }) => {
+            if (!active || !payload?.length) return null;
+            const item = payload[0]?.payload;
+            return (
+              <div style={{ background: '#0d0e1a', border: '1px solid #2a2c45', borderRadius: 8, padding: '10px 14px', fontSize: 12, minWidth: 180 }}>
+                <div style={{ color: '#6b6d8a', marginBottom: 4, fontSize: 11 }}>
+                  {label ? new Date(Number(label) * 1000).toLocaleString() : ''}
+                </div>
+                <div style={{ color: '#3a3c55', marginBottom: 8, fontSize: 11 }}>
+                  Block #{item?.block_height != null ? Number(item.block_height).toLocaleString() : '—'}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginBottom: 3 }}>
+                  <span style={{ color: '#6b6d8a' }}>Pool</span>
+                  <span style={{ color: '#e4e4f0', fontWeight: 600 }}>{item?.name ?? '—'}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                  <span style={{ color: '#6b6d8a' }}>Difficulty</span>
+                  <span style={{ color: '#f59e0b', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    {item?.difficulty != null ? Number(item.difficulty).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) : '—'}
+                  </span>
+                </div>
+              </div>
+            );
+          }} />
           <Line
             type="monotone"
             dataKey="difficulty"
@@ -123,12 +172,18 @@ function DifficultyChart({ data }) {
   );
 }
 
-export default function PoolHistoryPage({ params = {} }) {
+const today        = new Date().toISOString().split('T')[0];
+const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+export default function PoolHistoryPage({ params = {}, refreshInterval = 30_000 }) {
   const [poolNames, setPoolNames] = useState([]);
   const [tags, setTags]           = useState([]);
   const [selectedPool, setPool]   = useState(params.pool ?? '');
-  const [tagFilter, setTagFilter] = useState(params.tag ?? '');   // '' = no coin selected
-  const [data, setData]           = useState([]);
+  const [tagFilter, setTagFilter]       = useState(params.tag ?? '');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [dateFrom, setDateFrom]         = useState(sevenDaysAgo);
+  const [dateTo, setDateTo]             = useState(today);
+  const [data, setData]                 = useState([]);
   const [loading, setLoading]     = useState(false);
 
   // Load tags on mount only
@@ -154,35 +209,40 @@ export default function PoolHistoryPage({ params = {} }) {
     if (!selectedPool || !tagFilter) return;
     setLoading(true);
     try {
-      const rows = await api.poolHistory(selectedPool, tagFilter || undefined);
-      setData(rows.sort((a, b) => Number(a.mine_timestamp) - Number(b.mine_timestamp)));
+      const rows = await api.poolHistory(selectedPool, tagFilter || undefined, dateFrom, dateTo);
+      setData(deduplicateBlocks(rows).sort((a, b) => Number(a.mine_timestamp) - Number(b.mine_timestamp)));
     } finally {
       setLoading(false);
     }
-  }, [selectedPool, tagFilter]);
+  }, [selectedPool, tagFilter, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!selectedPool || !tagFilter) return;
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load, selectedPool, tagFilter]);
 
-  // Summary stats
+  const filteredData = useMemo(
+    () => statusFilter ? data.filter((r) => r.block_status === statusFilter) : data,
+    [data, statusFilter]
+  );
+
+  // Summary stats computed on full data (not filtered)
   const summary = useMemo(() => {
     if (!data.length) return null;
-    const lucks   = data.map((r) => Number(r.luck)).filter((v) => !isNaN(v));
+    const lucks    = data.map((r) => Number(r.luck)).filter((v) => !isNaN(v));
     const statuses = data.reduce((acc, r) => { acc[r.block_status] = (acc[r.block_status] ?? 0) + 1; return acc; }, {});
     return {
       blocks:    data.length,
       avgLuck:   lucks.length ? lucks.reduce((a, b) => a + b, 0) / lucks.length : null,
-      confirmed: statuses['confirmed'] ?? 0,
-      orphaned:  statuses['orphaned']  ?? 0,
-      pending:   statuses['pending']   ?? 0,
+      candidate: statuses['candidate'] ?? 0,
+      immature:  statuses['immature']  ?? 0,
+      matured:   statuses['matured']   ?? 0,
     };
   }, [data]);
 
-  const sub = !tagFilter ? 'Select a coin to begin' : selectedPool ? `${selectedPool} · ${tagFilter} · ${data.length} blocks · refresh 30s` : 'Select a pool';
+  const sub = !tagFilter ? 'Select a coin to begin' : selectedPool ? `${selectedPool} · ${tagFilter} · ${filteredData.length} blocks · refresh 30s` : 'Select a pool';
 
   return (
     <div>
@@ -200,6 +260,15 @@ export default function PoolHistoryPage({ params = {} }) {
                 {poolNames.map((n) => <option key={n} value={n}>{n}</option>)}
               </select>
             )}
+            <select style={s.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All status</option>
+              <option value="candidate">Candidate</option>
+              <option value="immature">Immature</option>
+              <option value="matured">Matured</option>
+            </select>
+            <input type="date" style={s.dateInput} value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} />
+            <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
+            <input type="date" style={s.dateInput} value={dateTo} min={dateFrom} max={today} onChange={(e) => setDateTo(e.target.value)} />
           </div>
         }
       />
@@ -214,29 +283,25 @@ export default function PoolHistoryPage({ params = {} }) {
           <div style={s.statDiv} />
           <div style={s.stat}>
             <span style={s.statLabel}>Avg Luck</span>
-            <span style={{ ...s.statVal, color: summary.avgLuck >= 1 ? '#22c55e' : summary.avgLuck >= 0.8 ? '#f59e0b' : '#ef4444' }}>
-              {summary.avgLuck != null ? `${(summary.avgLuck * 100).toFixed(1)}%` : '—'}
+            <span style={{ ...s.statVal, color: summary.avgLuck >= 100 ? '#22c55e' : summary.avgLuck >= 80 ? '#f59e0b' : '#ef4444' }}>
+              {summary.avgLuck != null ? `${summary.avgLuck.toFixed(1)}%` : '—'}
             </span>
           </div>
           <div style={s.statDiv} />
           <div style={s.stat}>
-            <span style={s.statLabel}>Confirmed</span>
-            <span style={{ ...s.statVal, color: '#22c55e' }}>{summary.confirmed}</span>
+            <span style={s.statLabel}>💰 Matured</span>
+            <span style={{ ...s.statVal, color: summary.matured > 0 ? '#22c55e' : '#4a4c6a' }}>{summary.matured}</span>
           </div>
           <div style={s.statDiv} />
           <div style={s.stat}>
-            <span style={s.statLabel}>Orphaned</span>
-            <span style={{ ...s.statVal, color: summary.orphaned > 0 ? '#ef4444' : '#4a4c6a' }}>{summary.orphaned}</span>
+            <span style={s.statLabel}>⏳ Immature</span>
+            <span style={{ ...s.statVal, color: summary.immature > 0 ? '#6366f1' : '#4a4c6a' }}>{summary.immature}</span>
           </div>
-          {summary.pending > 0 && (
-            <>
-              <div style={s.statDiv} />
-              <div style={s.stat}>
-                <span style={s.statLabel}>Pending</span>
-                <span style={{ ...s.statVal, color: '#f59e0b' }}>{summary.pending}</span>
-              </div>
-            </>
-          )}
+          <div style={s.statDiv} />
+          <div style={s.stat}>
+            <span style={s.statLabel}>🧱 Candidate</span>
+            <span style={{ ...s.statVal, color: summary.candidate > 0 ? '#f59e0b' : '#4a4c6a' }}>{summary.candidate}</span>
+          </div>
         </div>
       )}
 
@@ -250,8 +315,8 @@ export default function PoolHistoryPage({ params = {} }) {
         <Card><p style={{ color: '#4a4c6a', fontSize: 13 }}>No block data for this pool.</p></Card>
       ) : (
         <>
-          <LuckChart data={data} />
-          <DifficultyChart data={data} />
+          <LuckChart data={filteredData} />
+          <DifficultyChart data={filteredData} />
         </>
       )}
     </div>
@@ -259,7 +324,12 @@ export default function PoolHistoryPage({ params = {} }) {
 }
 
 const s = {
-  controls: { display: 'flex', alignItems: 'center', gap: 8 },
+  controls: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  dateInput: {
+    padding: '5px 8px', borderRadius: 7, border: '1px solid #1e2038',
+    fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',
+    colorScheme: 'dark',
+  },
   select: {
     padding: '6px 10px', borderRadius: 7, border: '1px solid #1e2038',
     fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',

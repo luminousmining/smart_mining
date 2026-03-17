@@ -111,10 +111,14 @@ def workflow_pool_2miners(config: Config, pool_manager: PoolManager) -> None:
 
     ###########################################################################
     start_time = time.time()
+
+    ###########################################################################
     pool = pool_manager.get_pool('2miners')
     if not pool:
         pool = Pool()
         pool.name = '2miners'
+
+    ###########################################################################
     api = TwoMinersAPI(config.apis.two_miners, config.folder_output)
 
     ###########################################################################
@@ -126,7 +130,11 @@ def workflow_pool_2miners(config: Config, pool_manager: PoolManager) -> None:
         if tag not in pool.blocks:
             pool.blocks[tag] = []
         for status in ('candidates', 'matured', 'immature'):
-            total_blocks = data[f'{status}Total']
+            key_name = f'{status}Total'
+            if key_name not in data:
+                logging.warning(f'⚠️ {tag} have not blocks [{status}]')
+                continue
+            total_blocks = data[key_name]
             logging.debug(f'🔍 {tag} have {total_blocks} blocks [{status}]')
             if total_blocks == 0:
                 continue

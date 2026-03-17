@@ -84,7 +84,7 @@ def run_application(config: Config) -> None:
     # Managers
     coin_manager = CoinManager()
     pool_manager = PoolManager()
-    hadrware_manager = HardwareManager()
+    hardware_manager = HardwareManager()
 
     # Database Connection
     pg = PostgreSQL(config)
@@ -97,7 +97,7 @@ def run_application(config: Config) -> None:
     thmCoin = TimerHandlerManager()
     thmCoin.add_handler('hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager)
     thmCoin.add_handler('what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager)
-    thmCoin.add_handler('miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hadrware_manager)
+    thmCoin.add_handler('miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager)
     thmCoin.add_handler('binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager)
     thmCoin.add_handler('coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager)
 
@@ -111,7 +111,7 @@ def run_application(config: Config) -> None:
     thmManager = TimerHandlerManager()
     thmManager.add_handler('coin_manager', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
     thmManager.add_handler('pool_manager', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
-    thmManager.add_handler('database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager)
+    thmManager.add_handler('database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager)
 
     while app_is_running():
         # Timer Coins

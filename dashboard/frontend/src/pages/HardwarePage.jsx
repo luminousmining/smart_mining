@@ -59,7 +59,7 @@ const COLUMNS = [
   },
 ];
 
-export default function HardwarePage() {
+export default function HardwarePage({ refreshInterval = 30_000 }) {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -76,7 +76,7 @@ export default function HardwarePage() {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load]);
 
