@@ -155,7 +155,7 @@ export default function PoolHistoryPage({ params = {} }) {
     setLoading(true);
     try {
       const rows = await api.poolHistory(selectedPool, tagFilter || undefined);
-      setData(rows);
+      setData(rows.sort((a, b) => Number(a.mine_timestamp) - Number(b.mine_timestamp)));
     } finally {
       setLoading(false);
     }

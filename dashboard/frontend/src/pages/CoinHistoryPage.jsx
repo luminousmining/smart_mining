@@ -119,7 +119,7 @@ export default function CoinHistoryPage({ params = {} }) {
     setLoading(true);
     try {
       const rows = await api.coinHistory(selected, range);
-      setData(rows);
+      setData(rows.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
     } finally {
       setLoading(false);
     }
