@@ -11,7 +11,7 @@ import Spinner from '../components/Spinner';
 const RANGES = ['1h', '24h', '7d', '30d', 'all'];
 
 const METRICS = [
-  { key: 'usd',              label: 'Price',          unit: 'USD',   color: '#00d4aa', fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumFractionDigits: 6 })}` },
+  { key: 'usd',              label: 'Price (USD)',     unit: 'USD',   color: '#00d4aa', fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumFractionDigits: 6 })}` },
   { key: 'market_cap',       label: 'Market Cap',     unit: 'USD',   color: '#6366f1', fmt: (v) => `$${Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 })}` },
   { key: 'difficulty',       label: 'Difficulty',     unit: '',      color: '#f59e0b', fmt: (v) => Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) },
   { key: 'network_hashrate', label: 'Net. Hashrate',  unit: 'H/s',   color: '#a78bfa', fmt: (v) => { const n = Number(v); if (n >= 1e15) return `${(n/1e15).toFixed(2)} PH/s`; if (n >= 1e12) return `${(n/1e12).toFixed(2)} TH/s`; if (n >= 1e9) return `${(n/1e9).toFixed(2)} GH/s`; return `${(n/1e6).toFixed(2)} MH/s`; } },
