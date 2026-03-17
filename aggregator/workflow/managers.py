@@ -31,7 +31,7 @@ def workflow_coin_manager(config: Config, coin_manager: CoinManager) -> None:
 
 
 def workflow_database_manager(config: Config, pg: PostgreSQL, coin_manager: CoinManager, pool_manager: PoolManager) -> None:
-    logging.info('===== WORKFLOW COIN MANAGER =====')
+    logging.info('===== WORKFLOW DATABASE MANAGER =====')
 
     ###########################################################################
     if not config.db.update:
