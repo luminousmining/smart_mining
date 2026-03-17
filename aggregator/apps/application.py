@@ -109,8 +109,8 @@ def run_application(config: Config) -> None:
 
     # Timer Handlers Managers
     thmManager = TimerHandlerManager()
-    thmManager.add_handler('coin_manager', get_seconds(t.coin_manager), workflow_pool_manager, config, pool_manager)
-    thmManager.add_handler('pool_manager', get_seconds(t.pool_manager), workflow_coin_manager, config, pool_manager)
+    thmManager.add_handler('coin_manager', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
+    thmManager.add_handler('pool_manager', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
     thmManager.add_handler('database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager)
 
     while app_is_running():
