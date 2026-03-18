@@ -8,9 +8,8 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
 
-const RANGES  = ['1h', '24h', '7d', '30d', 'all'];
 const METRICS = [
-  { key: 'usd',              label: 'Price USD',       fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumFractionDigits: 6 })}` },
+  { key: 'usd',              label: 'Price USD',       fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumSignificantDigits: 6 })}` },
   { key: 'market_cap',       label: 'Market Cap',      fmt: (v) => `$${Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 })}` },
   { key: 'difficulty',       label: 'Difficulty',      fmt: (v) => Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) },
   { key: 'network_hashrate', label: 'Net. Hashrate',   fmt: (v) => { const n = Number(v); if (n >= 1e15) return `${(n/1e15).toFixed(2)} PH/s`; if (n >= 1e12) return `${(n/1e12).toFixed(2)} TH/s`; if (n >= 1e9) return `${(n/1e9).toFixed(2)} GH/s`; return `${(n/1e6).toFixed(2)} MH/s`; } },
@@ -71,10 +70,14 @@ const CustomTooltip = ({ active, payload, label, metricFmt, normalize }) => {
   );
 };
 
-export default function MixedHistoryPage() {
+const today        = new Date().toISOString().split('T')[0];
+const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+export default function MixedHistoryPage({ refreshInterval = 30_000 }) {
   const [allCoins, setAllCoins]   = useState([]);
   const [selected, setSelected]   = useState([]);
-  const [range, setRange]         = useState('24h');
+  const [dateFrom, setDateFrom]   = useState(sevenDaysAgo);
+  const [dateTo, setDateTo]       = useState(today);
   const [metric, setMetric]       = useState('usd');
   const [normalize, setNormalize] = useState(false);
   const [rawData, setRawData]     = useState([]);
@@ -89,22 +92,22 @@ export default function MixedHistoryPage() {
     if (!selected.length) { setRawData([]); return; }
     setLoading(true);
     try {
-      const rows = await api.coinHistoryMulti(selected, range);
+      const rows = await api.coinHistoryMulti(selected, dateFrom, dateTo);
       setRawData(rows);
     } finally {
       setLoading(false);
     }
-  }, [selected, range]);
+  }, [selected, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!selected.length) return;
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load, selected]);
 
-  const metricDef = METRICS.find((m) => m.key === metric) ?? METRICS[0];
-  const chartData = useMemo(
+  const metricDef  = METRICS.find((m) => m.key === metric) ?? METRICS[0];
+  const chartData  = useMemo(
     () => mergeData(rawData, selected, metric, normalize),
     [rawData, selected, metric, normalize]
   );
@@ -164,11 +167,9 @@ export default function MixedHistoryPage() {
                 <option key={m.key} value={m.key}>{m.label}</option>
               ))}
             </select>
-            <div style={s.seg}>
-              {RANGES.map((r) => (
-                <button key={r} style={{ ...s.segBtn, ...(range === r ? s.segActive : {}) }} onClick={() => setRange(r)}>{r}</button>
-              ))}
-            </div>
+            <input type="date" style={s.dateInput} value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} />
+            <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
+            <input type="date" style={s.dateInput} value={dateTo} min={dateFrom} max={today} onChange={(e) => setDateTo(e.target.value)} />
             <button
               style={{ ...s.normBtn, ...(normalize ? s.normBtnOn : {}) }}
               onClick={() => setNormalize((v) => !v)}
@@ -280,6 +281,11 @@ const s = {
   coinTag:   { fontSize: 10, color: '#4a4c6a' },
 
   controls: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
+  dateInput: {
+    padding: '5px 8px', borderRadius: 7, border: '1px solid #1e2038',
+    fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',
+    colorScheme: 'dark',
+  },
   select: {
     padding: '6px 10px', borderRadius: 7, border: '1px solid #1e2038',
     fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',

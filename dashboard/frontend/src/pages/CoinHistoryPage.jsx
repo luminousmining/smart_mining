@@ -1,17 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { api } from '../api';
 import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
 
-const RANGES = ['1h', '24h', '7d', '30d', 'all'];
-
 const METRICS = [
-  { key: 'usd',              label: 'Price (USD)',     unit: 'USD',   color: '#00d4aa', fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumFractionDigits: 6 })}` },
+  { key: 'usd',              label: 'Price (USD)',     unit: 'USD',   color: '#00d4aa', fmt: (v) => `$${Number(v).toLocaleString('en-US', { maximumSignificantDigits: 6 })}` },
   { key: 'market_cap',       label: 'Market Cap',     unit: 'USD',   color: '#6366f1', fmt: (v) => `$${Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 })}` },
   { key: 'difficulty',       label: 'Difficulty',     unit: '',      color: '#f59e0b', fmt: (v) => Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) },
   { key: 'network_hashrate', label: 'Net. Hashrate',  unit: 'H/s',   color: '#a78bfa', fmt: (v) => { const n = Number(v); if (n >= 1e15) return `${(n/1e15).toFixed(2)} PH/s`; if (n >= 1e12) return `${(n/1e12).toFixed(2)} TH/s`; if (n >= 1e9) return `${(n/1e9).toFixed(2)} GH/s`; return `${(n/1e6).toFixed(2)} MH/s`; } },
@@ -100,10 +98,14 @@ function MetricChart({ data, metric }) {
   );
 }
 
-export default function CoinHistoryPage({ params = {} }) {
+const today        = new Date().toISOString().split('T')[0];
+const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+export default function CoinHistoryPage({ params = {}, refreshInterval = 30_000 }) {
   const [coinNames, setCoinNames] = useState([]);
   const [selected, setSelected]   = useState(params.coin ?? '');
-  const [range, setRange]         = useState('24h');
+  const [dateFrom, setDateFrom]   = useState(sevenDaysAgo);
+  const [dateTo, setDateTo]       = useState(today);
   const [data, setData]           = useState([]);
   const [loading, setLoading]     = useState(false);
 
@@ -118,17 +120,17 @@ export default function CoinHistoryPage({ params = {} }) {
     if (!selected) return;
     setLoading(true);
     try {
-      const rows = await api.coinHistory(selected, range);
-      setData(rows.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)));
+      const rows = await api.coinHistory(selected, dateFrom, dateTo);
+      setData(rows.sort((a, b) => String(a.created_at) < String(b.created_at) ? -1 : 1));
     } finally {
       setLoading(false);
     }
-  }, [selected, range]);
+  }, [selected, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
     if (!selected) return;
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load, selected]);
 
@@ -144,17 +146,9 @@ export default function CoinHistoryPage({ params = {} }) {
                 <option key={name} value={name}>{name} ({tag})</option>
               ))}
             </select>
-            <div style={s.seg}>
-              {RANGES.map((r) => (
-                <button
-                  key={r}
-                  style={{ ...s.segBtn, ...(range === r ? s.segActive : {}) }}
-                  onClick={() => setRange(r)}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
+            <input type="date" style={s.dateInput} value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} />
+            <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
+            <input type="date" style={s.dateInput} value={dateTo} min={dateFrom} max={today} onChange={(e) => setDateTo(e.target.value)} />
           </div>
         }
       />
@@ -185,6 +179,11 @@ const s = {
   pct:         { fontSize: 12, fontWeight: 600 },
 
   controls: { display: 'flex', alignItems: 'center', gap: 10 },
+  dateInput: {
+    padding: '5px 8px', borderRadius: 7, border: '1px solid #1e2038',
+    fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',
+    colorScheme: 'dark',
+  },
   select: {
     padding: '6px 10px',
     borderRadius: 7,

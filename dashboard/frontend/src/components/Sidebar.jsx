@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import { api } from '../api';
+
 const NAV = [
   { id: 'coins',       label: 'Coins',          icon: CoinIcon,    group: 'Market' },
   { id: 'history',     label: 'History',        icon: ChartIcon,   group: 'Market' },
@@ -9,6 +12,15 @@ const NAV = [
 ];
 
 export default function Sidebar({ active, onNav }) {
+  const [aggregatorRunning, setAggregatorRunning] = useState(null);
+
+  useEffect(() => {
+    const check = () => api.aggregatorStatus().then(d => setAggregatorRunning(d.running)).catch(() => setAggregatorRunning(false));
+    check();
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <nav style={s.nav}>
       <div style={s.logo}>
@@ -47,8 +59,12 @@ export default function Sidebar({ active, onNav }) {
       </ul>
 
       <div style={s.footer}>
-        <div style={s.pulse} />
-        <span style={s.footerText}>Live</span>
+        <div style={{
+          width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+          background: aggregatorRunning === null ? '#4a4c6a' : aggregatorRunning ? '#22c55e' : '#ef4444',
+          boxShadow: aggregatorRunning ? '0 0 8px #22c55e88' : aggregatorRunning === false ? '0 0 8px #ef444488' : 'none',
+        }} />
+        <span style={s.footerText}>Aggregator</span>
       </div>
     </nav>
   );
@@ -128,13 +144,5 @@ const s = {
   labelActive: { fontSize: 13, fontWeight: 600, color: '#e4e4f0' },
   dot: { width: 5, height: 5, borderRadius: '50%', background: '#00d4aa', marginLeft: 'auto', flexShrink: 0 },
   footer: { display: 'flex', alignItems: 'center', gap: 7, padding: '12px 10px 4px', borderTop: '1px solid #1a1b2e' },
-  pulse: { width: 7, height: 7, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 8px #22c55e88', animation: 'pulse 2s ease infinite' },
   footerText: { fontSize: 11, color: '#4a4c6a', letterSpacing: '0.5px', textTransform: 'uppercase' },
 };
-
-if (typeof document !== 'undefined' && !document.getElementById('pulse-kf')) {
-  const st = document.createElement('style');
-  st.id = 'pulse-kf';
-  st.textContent = '@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}';
-  document.head.appendChild(st);
-}

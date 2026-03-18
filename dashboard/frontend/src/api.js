@@ -9,12 +9,13 @@ async function get(path) {
 export const api = {
   coins:            ()             => get('/coins'),
   coinNames:        ()             => get('/coin-names'),
-  coinHistory:      (name, range)  => get(`/coin-history?name=${encodeURIComponent(name)}&range=${range}`),
-  coinHistoryMulti: (names, range) => get(`/coin-history-multi?names=${names.map(encodeURIComponent).join(',')}&range=${range}`),
+  coinHistory:      (name, from, to)       => get(`/coin-history?name=${encodeURIComponent(name)}&from=${from}&to=${to}`),
+  coinHistoryMulti: (names, from, to)      => get(`/coin-history-multi?names=${names.map(encodeURIComponent).join(',')}&from=${from}&to=${to}`),
   hardware:         ()             => get('/hardware'),
   pools:            ()             => get('/pools'),
   poolStats:        (tag)          => get(tag ? `/pool-stats?tag=${encodeURIComponent(tag)}` : '/pool-stats'),
   poolTags:         ()             => get('/pool-tags'),
   poolNames:        (tag)          => get(tag ? `/pool-names?tag=${encodeURIComponent(tag)}` : '/pool-names'),
-  poolHistory:      (name, tag)    => get(`/pool-history?name=${encodeURIComponent(name)}${tag ? `&tag=${encodeURIComponent(tag)}` : ''}`),
+  poolHistory:      (name, tag, from, to) => get(`/pool-history?name=${encodeURIComponent(name)}${tag ? `&tag=${encodeURIComponent(tag)}` : ''}${from ? `&from=${from}` : ''}${to ? `&to=${to}` : ''}`),
+  aggregatorStatus: ()             => get('/aggregator-status'),
 };

@@ -54,11 +54,14 @@ if __name__ == '__main__':
     initialize_logger(project_config.log)
 
     logging.info('🚀 Start aggregator!')
-    if project_mode == AGGREGATOR_MODE.STANDALONE:
-        run_standalone(project_config)
-    elif project_mode == AGGREGATOR_MODE.APPLICATION:
-        run_application(project_config)
-    else:
-        logging.error(f'Project mode unknow: {project_mode}!')
+    try:
+        if project_mode == AGGREGATOR_MODE.STANDALONE:
+            run_standalone(project_config)
+        elif project_mode == AGGREGATOR_MODE.APPLICATION:
+            run_application(project_config)
+        else:
+            logging.error(f'Project mode unknow: {project_mode}!')
+    except Exception as err:
+        logging.exception(f'💥 Unhandled exception: {err}')
 else:
     print('USAGE\npython3 aggregator.py')

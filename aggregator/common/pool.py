@@ -1,7 +1,6 @@
-from common import (
-    Block
-)
+import logging
 
+from common import Block
 
 class CoinPool:
 
@@ -43,11 +42,14 @@ class Pool:
         if other.name and self.name != other.name:
             self.name = other.name
 
-        for coin in other.coins.values():
-            self.updade_coin(coin)
+        if other.coins:
+            for coin in other.coins.values():
+                self.update_coin(coin)
 
-        for block in other.blocks.values():
-            self.updade_block(block)
+        if other.blocks:
+            for blocks in other.blocks.values():
+                for block in blocks:
+                    self.update_block(block)
 
     def update_coin(self, coin: CoinPool) -> None:
         if coin.tag not in self.coins:
@@ -56,6 +58,9 @@ class Pool:
         self.coins[coin.tag].merge(coin)
 
     def update_block(self, block: Block) -> None:
+        if not block or not block.tag:
+            return
+
         if block.tag not in self.blocks:
             self.blocks[block.tag] = []
             self.blocks[block.tag].append(block)

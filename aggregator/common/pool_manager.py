@@ -51,10 +51,10 @@ class PoolManager:
 
     def update_pool(self, pool: Pool) -> None:
         #######################################################################
-        if pool.name in self._pools:
-            self._pools[pool.name].merge(pool)
-        else:
-            self._pools[pool.name] = pool
+        if pool.name not in self._pools:
+            self._pools[pool.name] = Pool()
+        logging.info(f'{pool.name}')
+        self._pools[pool.name].merge(pool)
 
     def get_pool(self, name: str) -> Pool:
         return self._pools.get(name, None)

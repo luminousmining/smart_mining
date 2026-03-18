@@ -6,10 +6,24 @@ import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
 
 const STATUS = {
-  confirmed: { bg: '#0d2a18', color: '#22c55e' },
-  orphaned:  { bg: '#2a0d0d', color: '#ef4444' },
-  pending:   { bg: '#2a1d0d', color: '#f59e0b' },
+  matured:   { bg: '#0d2a18', color: '#22c55e' },
+  candidate: { bg: '#0d2030', color: '#00d4aa' },
+  immature:  { bg: '#2a0d0d', color: '#ef4444' },
 };
+
+const STATUS_PRIORITY = { matured: 3, immature: 2, candidate: 1 };
+
+function deduplicateBlocks(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = `${row.name}|${row.tag}|${row.block_height}`;
+    const existing = map.get(key);
+    const rowPrio = STATUS_PRIORITY[row.block_status?.toLowerCase()] ?? 0;
+    const existPrio = existing ? (STATUS_PRIORITY[existing.block_status?.toLowerCase()] ?? 0) : -1;
+    if (!existing || rowPrio > existPrio) map.set(key, row);
+  }
+  return [...map.values()];
+}
 
 function StatusBadge({ value }) {
   if (!value) return <span style={{ color: '#3a3c55' }}>—</span>;
@@ -24,7 +38,7 @@ function StatusBadge({ value }) {
 
 function LuckCell({ value }) {
   if (value == null) return <span style={{ color: '#3a3c55' }}>—</span>;
-  const pct = Number(value) * 100;
+  const pct = Number(value);
   const color = pct >= 100 ? '#22c55e' : pct >= 80 ? '#f59e0b' : '#ef4444';
   return <span style={{ color, fontWeight: 600 }}>{pct.toFixed(1)}%</span>;
 }
@@ -58,11 +72,14 @@ const STATS_COLS = [
   { key: 'block_status',   label: 'Status',     render: (v) => <StatusBadge value={v} /> },
 ];
 
-export default function PoolsPage({ onNavigate }) {
+export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
   const [pools, setPools]     = useState([]);
   const [allStats, setStats]  = useState([]);
   const [tags, setTags]       = useState([]);
-  const [tagFilter, setTagFilter] = useState('');
+  const [tagFilter, setTagFilter]       = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [heightMin, setHeightMin]       = useState('');
+  const [heightMax, setHeightMax]       = useState('');
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
 
@@ -70,7 +87,7 @@ export default function PoolsPage({ onNavigate }) {
     try {
       const [p, st, tg] = await Promise.all([api.pools(), api.poolStats(), api.poolTags()]);
       setPools(p);
-      setStats(st);
+      setStats(deduplicateBlocks(st));
       setTags(tg);
       setLastUpdate(new Date());
     } finally {
@@ -80,14 +97,27 @@ export default function PoolsPage({ onNavigate }) {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 30_000);
+    const id = setInterval(load, refreshInterval ?? 30_000);
     return () => clearInterval(id);
   }, [load]);
 
-  const stats = useMemo(
-    () => tagFilter ? allStats.filter((r) => r.tag === tagFilter) : allStats,
-    [allStats, tagFilter]
-  );
+  // Compute block_height range from deduplicated data
+  const { minHeight, maxHeight } = useMemo(() => {
+    if (!allStats.length) return { minHeight: 0, maxHeight: 0 };
+    const heights = allStats.map((r) => Number(r.block_height)).filter((v) => !isNaN(v));
+    return { minHeight: Math.min(...heights), maxHeight: Math.max(...heights) };
+  }, [allStats]);
+
+  const stats = useMemo(() => {
+    const lo = heightMin !== '' ? Number(heightMin) : null;
+    const hi = heightMax !== '' ? Number(heightMax) : null;
+    return allStats.filter((r) =>
+      (!tagFilter    || r.tag          === tagFilter) &&
+      (!statusFilter || r.block_status === statusFilter) &&
+      (lo === null   || Number(r.block_height) >= lo) &&
+      (hi === null   || Number(r.block_height) <= hi)
+    );
+  }, [allStats, tagFilter, statusFilter, heightMin, heightMax]);
 
   const filteredPools = useMemo(
     () => tagFilter ? pools.filter((p) => p.tag === tagFilter) : pools,
@@ -108,6 +138,27 @@ export default function PoolsPage({ onNavigate }) {
               <option value="">All coins</option>
               {tags.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
+            <span style={s.filterLabel}>Status</span>
+            <select style={s.select} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All</option>
+              <option value="candidate">Candidate</option>
+              <option value="immature">Immature</option>
+              <option value="matured">Matured</option>
+            </select>
+            <span style={s.filterLabel}>Block</span>
+            <input
+              type="number" style={s.heightInput}
+              placeholder={minHeight || '—'}
+              value={heightMin}
+              onChange={(e) => setHeightMin(e.target.value)}
+            />
+            <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
+            <input
+              type="number" style={s.heightInput}
+              placeholder={maxHeight || '—'}
+              value={heightMax}
+              onChange={(e) => setHeightMax(e.target.value)}
+            />
           </div>
         }
       />
@@ -134,8 +185,13 @@ const s = {
     width: 24, height: 24, borderRadius: 6, border: '1px solid #1e2038',
     background: 'transparent', color: '#4a4c6a', cursor: 'pointer', transition: 'all 0.15s',
   },
-  filterWrap: { display: 'flex', alignItems: 'center', gap: 8 },
+  filterWrap: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   filterLabel: { fontSize: 11, color: '#4a4c6a', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  heightInput: {
+    padding: '5px 8px', borderRadius: 7, border: '1px solid #1e2038',
+    fontSize: 12, color: '#c8c8e0', background: '#111221', outline: 'none',
+    width: 100,
+  },
   select: {
     padding: '6px 10px', borderRadius: 7, border: '1px solid #1e2038',
     fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',
