@@ -11,7 +11,7 @@ const NAV = [
   { id: 'poolcompare', label: 'Compare Pools',   icon: CompareIcon, group: 'Mining' },
 ];
 
-export default function Sidebar({ active, onNav }) {
+export default function Sidebar({ active, onNav, open, isMobile, onClose }) {
   const [aggregatorRunning, setAggregatorRunning] = useState(null);
 
   useEffect(() => {
@@ -21,14 +21,23 @@ export default function Sidebar({ active, onNav }) {
     return () => clearInterval(id);
   }, []);
 
+  if (!open) return null;
+
+  const navStyle = isMobile
+    ? { ...s.nav, position: 'fixed', top: 0, left: 0, height: '100vh', zIndex: 200 }
+    : s.nav;
+
   return (
-    <nav style={s.nav}>
+    <nav style={navStyle}>
       <div style={s.logo}>
         <div style={s.logoMark}>M</div>
-        <div>
+        <div style={{ flex: 1 }}>
           <div style={s.logoTitle}>Mining</div>
           <div style={s.logoSub}>Dashboard</div>
         </div>
+        {isMobile && (
+          <button onClick={onClose} style={s.closeBtn} aria-label="Close sidebar">✕</button>
+        )}
       </div>
 
       <ul style={s.list}>
@@ -145,4 +154,9 @@ const s = {
   dot: { width: 5, height: 5, borderRadius: '50%', background: '#00d4aa', marginLeft: 'auto', flexShrink: 0 },
   footer: { display: 'flex', alignItems: 'center', gap: 7, padding: '12px 10px 4px', borderTop: '1px solid #1a1b2e' },
   footerText: { fontSize: 11, color: '#4a4c6a', letterSpacing: '0.5px', textTransform: 'uppercase' },
+  closeBtn: {
+    background: 'transparent', border: 'none', cursor: 'pointer',
+    color: '#4a4c6a', fontSize: 16, padding: '2px 4px', lineHeight: 1,
+    flexShrink: 0,
+  },
 };
