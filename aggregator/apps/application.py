@@ -1,4 +1,5 @@
 import time
+import logging
 
 from config import Config
 from common import (
@@ -42,6 +43,13 @@ def get_days(days: int) -> int:
     return get_hours(24) * days
 
 
+class HandlerNamespace:
+
+    COIN = 'coin'
+    POOL = 'pool'
+    MANAGER = 'manager'
+
+
 class TimerHandler:
     def __init__(self, p_tick: int, p_callback: callable, *args, **kwargs):
         self.tick = p_tick
@@ -63,17 +71,26 @@ class TimerHandler:
 class TimerHandlerManager:
     def __init__(self):
         self._handlers: dict[str, TimerHandler] = {}
+        self._namespaces: dict[str, dict[str, TimerHandler]] = {}
 
-    def add_handler(self, name: str, p_tick: int, p_callback: callable, *args, **kwargs) -> None:
-        self._handlers[name] = TimerHandler(p_tick, p_callback, *args, **kwargs)
+    def add_handler(self, namespace: str, name: str, p_tick: int, p_callback: callable, *args, **kwargs) -> None:
+        logging.info(f'Initialize Handler: Namespace[{namespace}] - Name[{name}] - Tick[{p_tick}s]')
+        if namespace not in self._namespaces:
+            self._namespaces[namespace] = {}
+        self._namespaces[namespace][name] = TimerHandler(p_tick, p_callback, *args, **kwargs)
 
-    def process(self, name: str) -> None:
-        handler = self._handlers.get(name)
-        if not handler:
+    def process(self, namespace: str, name: str) -> None:
+        __namespace =self._namespaces.get(namespace)
+        if not __namespace:
             return
 
-        if handler.is_time():
-            handler.run()
+        __handler = __namespace.get(name)
+        if not __handler:
+            return
+
+        if __handler.is_time():
+            logging.info(f'Running: [{namespace}] - {name}')
+            __handler.run()
 
 
 def app_is_running() -> bool:
@@ -95,41 +112,49 @@ def run_application(config: Config) -> None:
 
     # Timer Handlers Coins
     thmCoin = TimerHandlerManager()
-    thmCoin.add_handler('hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager)
-    thmCoin.add_handler('what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager)
-    thmCoin.add_handler('miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager)
-    thmCoin.add_handler('binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager)
-    thmCoin.add_handler('coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager)
+    if config.apis.hashrate_no:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager)
+    if config.apis.what_to_mine:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager)
+    if config.apis.minerstat:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager)
+    if config.apis.binance:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager)
+    if config.apis.coingecko:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
-    thmPool.add_handler('2miner', get_seconds(t.two_miners), workflow_pool_2miners, config, pool_manager)
-    thmPool.add_handler('miner_stat', get_seconds(t.miner_stat_pool), workflow_pool_miner_stat, config, coin_manager, pool_manager)
-    thmPool.add_handler('nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager)
+    if config.apis.two_miners:
+        thmPool.add_handler(HandlerNamespace.POOL, '2miner', get_seconds(t.two_miners), workflow_pool_2miners, config, pool_manager)
+    if config.apis.minerstat:
+        thmPool.add_handler(HandlerNamespace.POOL, 'miner_stat', get_seconds(t.miner_stat_pool), workflow_pool_miner_stat, config, coin_manager, pool_manager)
+    if config.apis.nanopool:
+        thmPool.add_handler(HandlerNamespace.POOL, 'nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager)
 
     # Timer Handlers Managers
     thmManager = TimerHandlerManager()
-    thmManager.add_handler('coin_manager', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
-    thmManager.add_handler('pool_manager', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
-    thmManager.add_handler('database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager)
+    thmManager.add_handler(HandlerNamespace.MANAGER, 'coin', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
+    thmManager.add_handler(HandlerNamespace.MANAGER, 'pool', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
+    thmManager.add_handler(HandlerNamespace.MANAGER, 'database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager)
 
     while app_is_running():
         # Timer Coins
-        thmCoin.process('hashrate_no')
-        thmCoin.process('what_to_mine')
-        thmCoin.process('miner_stat')
-        thmCoin.process('binance')
-        thmCoin.process('coingecko')
+        thmCoin.process(HandlerNamespace.COIN, 'hashrate_no')
+        thmCoin.process(HandlerNamespace.COIN, 'what_to_mine')
+        thmCoin.process(HandlerNamespace.COIN, 'miner_stat')
+        thmCoin.process(HandlerNamespace.COIN, 'binance')
+        thmCoin.process(HandlerNamespace.COIN, 'coingecko')
 
         # Timer Pools
-        thmPool.process('2miner')
-        thmPool.process('miner_stat')
-        thmPool.process('nanopool')
+        thmPool.process(HandlerNamespace.POOL, '2miner')
+        thmPool.process(HandlerNamespace.POOL, 'miner_stat')
+        thmPool.process(HandlerNamespace.POOL, 'nanopool')
 
         # Timer Managers
-        thmManager.process('coin_manager')
-        thmManager.process('pool_manager')
-        thmManager.process('database')
+        thmManager.process(HandlerNamespace.MANAGER, 'coin_manager')
+        thmManager.process(HandlerNamespace.MANAGER, 'pool_manager')
+        thmManager.process(HandlerNamespace.MANAGER, 'database')
 
         time.sleep(0.1)
 

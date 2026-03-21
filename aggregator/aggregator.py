@@ -54,6 +54,7 @@ if __name__ == '__main__':
     initialize_logger(project_config.log)
 
     logging.info('🚀 Start aggregator!')
+    logging.info(f'Using mode [{project_mode}]')
     try:
         if project_mode == AGGREGATOR_MODE.STANDALONE:
             run_standalone(project_config)
