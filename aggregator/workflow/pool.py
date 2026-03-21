@@ -164,7 +164,7 @@ def workflow_pool_2miners(config: Config, pool_manager: PoolManager) -> None:
     for tag, data in miners.items():
         coin = CoinPool()
         coin.tag = tag
-        coin.total_miner = data['minersTotal']
+        coin.total_miner = data['minersTotal'] if 'minersTotal' in data else 0
         logging.debug(f'🔍 {tag} have {coin.total_miner} miners')
         pool.update_coin(coin)
 
