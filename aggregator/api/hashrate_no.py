@@ -21,12 +21,23 @@ class HashrateNoAPI(ApiHTTP):
     def get_coins(self) -> dict:
         output_file = self.dump_file_coins
 
+        #######################################################################
         if self.use_api and self.api_key:
             coins = self.get(f'coins?apiKey={self.api_key}')
             logging.debug(f'📥 Dumping in {output_file}')
+
+            ###################################################################
+            if 'title' in coins and coins['title'] == 'An error occurred':
+                return {}
+            if 'detail' in coins and coins['detail'] == 'Monthly usage exceeded':
+                return {}
+
+            ###################################################################
             with open(output_file, 'w') as fd:
                 json.dump(coins, fd, indent=4)
             return coins
+
+        #######################################################################
         else:
             logging.debug(f'🔍 Read dump {output_file}')
             with open(output_file) as fd:
