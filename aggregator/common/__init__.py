@@ -18,3 +18,4 @@ from common.pool_manager import PoolManager
 from common.coin_manager import CoinManager
 from common.hardware_manager import HardwareManager
 from common.pg import PostgreSQL
+from common.api_history_manager import ApiHistoryManager

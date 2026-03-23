@@ -18,7 +18,7 @@ const pool = new Pool({
 
 // ── Coins ─────────────────────────────────────────────────────────────────────
 
-app.get('/api/coins', async (req, res) => {
+app.get('/api/coins', async (_req, res) => {
   try {
     const result = await pool.query('SELECT * FROM coins ORDER BY usd DESC NULLS LAST');
     res.json(result.rows);
@@ -27,7 +27,7 @@ app.get('/api/coins', async (req, res) => {
   }
 });
 
-app.get('/api/coin-names', async (req, res) => {
+app.get('/api/coin-names', async (_req, res) => {
   try {
     const result = await pool.query(
       'SELECT DISTINCT name, tag FROM coin_history ORDER BY name'
@@ -85,7 +85,7 @@ app.get('/api/coin-history-multi', async (req, res) => {
 
 // ── Hardware ──────────────────────────────────────────────────────────────────
 
-app.get('/api/hardware', async (req, res) => {
+app.get('/api/hardware', async (_req, res) => {
   try {
     const result = await pool.query(`
       SELECT h.id, h.name AS hardware, hm.algo, hm.hashrate, hm.power
@@ -101,7 +101,7 @@ app.get('/api/hardware', async (req, res) => {
 
 // ── Pools ─────────────────────────────────────────────────────────────────────
 
-app.get('/api/pools', async (req, res) => {
+app.get('/api/pools', async (_req, res) => {
   try {
     const result = await pool.query('SELECT * FROM pools ORDER BY name, tag');
     res.json(result.rows);
@@ -160,7 +160,7 @@ app.get('/api/pool-history', async (req, res) => {
 });
 
 // Distinct tags available in pool_stats (for filters)
-app.get('/api/pool-tags', async (req, res) => {
+app.get('/api/pool-tags', async (_req, res) => {
   try {
     const result = await pool.query(
       'SELECT DISTINCT tag FROM pool_stats ORDER BY tag'
@@ -171,9 +171,41 @@ app.get('/api/pool-tags', async (req, res) => {
   }
 });
 
+// ── API History ───────────────────────────────────────────────────────────────
+
+app.get('/api/api-history', async (req, res) => {
+  try {
+    const { api_name, success, limit } = req.query;
+    const params = [];
+    const conditions = [];
+
+    if (api_name) { params.push(api_name); conditions.push(`api_name = $${params.length}`); }
+    if (success !== undefined) { params.push(success === 'true'); conditions.push(`success = $${params.length}`); }
+
+    const maxRows = Math.min(parseInt(limit) || 200, 1000);
+    let query = 'SELECT id, api_name, success, duration_ms, message, called_at FROM api_history';
+    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
+    query += ` ORDER BY called_at DESC LIMIT ${maxRows}`;
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/api-history-names', async (_req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT api_name FROM api_history ORDER BY api_name');
+    res.json(result.rows.map(r => r.api_name));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── Services ──────────────────────────────────────────────────────────────────
 
-app.get('/api/aggregator-status', (req, res) => {
+app.get('/api/aggregator-status', (_req, res) => {
   exec('tmux has-session -t aggregator', (error) => {
     res.json({ running: !error });
   });

@@ -11,7 +11,8 @@ from common import (
     CoinManager,
     HardwareManager,
     PostgreSQL,
-    PoolManager
+    PoolManager,
+    ApiHistoryManager
 )
 from workflow import (
     workflow_coin_binance,
@@ -52,6 +53,7 @@ def run_standalone(config: Config) -> None:
     coin_manager = CoinManager()
     pool_manager = PoolManager()
     hadrware_manager = HardwareManager()
+    api_history_manager = ApiHistoryManager()
 
     # Establish database connection
     pg = PostgreSQL(config)
@@ -59,16 +61,16 @@ def run_standalone(config: Config) -> None:
         return
 
     # Fetch cryptocurrency data from multiple external APIs
-    workflow_coin_hashrate_no(config, coin_manager)
-    workflow_coin_what_to_mine(config, coin_manager)
-    workflow_coin_miner_stat(config, coin_manager, hadrware_manager)
-    workflow_coin_binance(config, coin_manager)
-    workflow_coin_coingecko(config, coin_manager)
+    workflow_coin_hashrate_no(config, coin_manager, api_history_manager)
+    workflow_coin_what_to_mine(config, coin_manager, api_history_manager)
+    workflow_coin_miner_stat(config, coin_manager, hadrware_manager, api_history_manager)
+    workflow_coin_binance(config, coin_manager, api_history_manager)
+    workflow_coin_coingecko(config, coin_manager, api_history_manager)
 
     # Fetch mining pool data from multiple external APIs
-    workflow_pool_2miners(config, pool_manager)
-    workflow_pool_miner_stat(config, coin_manager, pool_manager)
-    workflow_pool_nanopool(config, pool_manager)
+    workflow_pool_2miners(config, pool_manager, api_history_manager)
+    workflow_pool_miner_stat(config, coin_manager, pool_manager, api_history_manager)
+    workflow_pool_nanopool(config, pool_manager, api_history_manager)
 
     # Process and finalize collected data
     coin_manager.update()
@@ -81,7 +83,7 @@ def run_standalone(config: Config) -> None:
 
     # Synchronize data to database if enabled in configuration
     if config.db.update:
-        pg.update(coin_manager, pool_manager, hadrware_manager)
+        pg.update(coin_manager, pool_manager, hadrware_manager, api_history_manager)
 
     # Close database connection
     if pg.is_connected() is True:

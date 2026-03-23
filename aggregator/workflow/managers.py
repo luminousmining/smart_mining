@@ -5,7 +5,8 @@ from common import (
     CoinManager,
     PoolManager,
     HardwareManager,
-    PostgreSQL
+    PostgreSQL,
+    ApiHistoryManager
 )
 
 
@@ -31,7 +32,7 @@ def workflow_coin_manager(config: Config, coin_manager: CoinManager) -> None:
     coin_manager.update()
 
 
-def workflow_database_manager(config: Config, pg: PostgreSQL, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
+def workflow_database_manager(config: Config, pg: PostgreSQL, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager, api_history_manager: ApiHistoryManager) -> None:
     logging.info('===== WORKFLOW DATABASE MANAGER =====')
 
     ###########################################################################
@@ -39,4 +40,4 @@ def workflow_database_manager(config: Config, pg: PostgreSQL, coin_manager: Coin
         logging.info('🚮 Skipped!')
         return
 
-    pg.update(coin_manager, pool_manager, hardware_manager)
+    pg.update(coin_manager, pool_manager, hardware_manager, api_history_manager)

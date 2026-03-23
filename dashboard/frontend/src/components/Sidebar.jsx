@@ -9,6 +9,7 @@ const NAV = [
   { id: 'pools',       label: 'Pools',           icon: PoolIcon,    group: 'Mining' },
   { id: 'poolhistory', label: 'Pool History',    icon: ChartIcon,   group: 'Mining' },
   { id: 'poolcompare', label: 'Compare Pools',   icon: CompareIcon, group: 'Mining' },
+  { id: 'apihistory',  label: 'API History',     icon: PulseIcon,   group: 'System' },
 ];
 
 export default function Sidebar({ active, onNav, open, isMobile, onClose }) {
@@ -41,7 +42,7 @@ export default function Sidebar({ active, onNav, open, isMobile, onClose }) {
       </div>
 
       <ul style={s.list}>
-        {['Market', 'Mining'].map((group) => (
+        {['Market', 'Mining', 'System'].map((group) => (
           <li key={group}>
             <div style={s.group}>{group}</div>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -115,6 +116,14 @@ function CompareIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 20V10M12 20V4M6 20v-6" />
+    </svg>
+  );
+}
+
+function PulseIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   );
 }

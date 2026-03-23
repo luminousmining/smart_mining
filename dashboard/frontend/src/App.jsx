@@ -7,6 +7,7 @@ import HardwarePage from './pages/HardwarePage';
 import PoolsPage from './pages/PoolsPage';
 import PoolComparePage from './pages/PoolComparePage';
 import PoolHistoryPage from './pages/PoolHistoryPage';
+import ApiHistoryPage from './pages/ApiHistoryPage';
 
 const PAGES = {
   coins:        CoinsPage,
@@ -16,6 +17,7 @@ const PAGES = {
   pools:        PoolsPage,
   poolhistory:  PoolHistoryPage,
   poolcompare:  PoolComparePage,
+  apihistory:   ApiHistoryPage,
 };
 
 const REFRESH_OPTIONS = [

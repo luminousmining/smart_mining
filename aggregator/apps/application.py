@@ -7,6 +7,7 @@ from common import (
     HardwareManager,
     PostgreSQL,
     PoolManager,
+    ApiHistoryManager,
 )
 from workflow import (
     workflow_coin_binance,
@@ -102,6 +103,7 @@ def run_application(config: Config) -> None:
     coin_manager = CoinManager()
     pool_manager = PoolManager()
     hardware_manager = HardwareManager()
+    api_history_manager = ApiHistoryManager()
 
     # Database Connection
     pg = PostgreSQL(config)
@@ -113,30 +115,30 @@ def run_application(config: Config) -> None:
     # Timer Handlers Coins
     thmCoin = TimerHandlerManager()
     if config.apis.hashrate_no:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager)
+        thmCoin.add_handler(HandlerNamespace.COIN, 'hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager, api_history_manager)
     if config.apis.what_to_mine:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager)
+        thmCoin.add_handler(HandlerNamespace.COIN, 'what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager, api_history_manager)
     if config.apis.minerstat:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager)
+        thmCoin.add_handler(HandlerNamespace.COIN, 'miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager, api_history_manager)
     if config.apis.binance:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager)
+        thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager, api_history_manager)
     if config.apis.coingecko:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager)
+        thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager, api_history_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
     if config.apis.two_miners:
-        thmPool.add_handler(HandlerNamespace.POOL, '2miner', get_seconds(t.two_miners), workflow_pool_2miners, config, pool_manager)
+        thmPool.add_handler(HandlerNamespace.POOL, '2miner', get_seconds(t.two_miners), workflow_pool_2miners, config, pool_manager, api_history_manager)
     if config.apis.minerstat:
-        thmPool.add_handler(HandlerNamespace.POOL, 'miner_stat', get_seconds(t.miner_stat_pool), workflow_pool_miner_stat, config, coin_manager, pool_manager)
+        thmPool.add_handler(HandlerNamespace.POOL, 'miner_stat', get_seconds(t.miner_stat_pool), workflow_pool_miner_stat, config, coin_manager, pool_manager, api_history_manager)
     if config.apis.nanopool:
-        thmPool.add_handler(HandlerNamespace.POOL, 'nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager)
+        thmPool.add_handler(HandlerNamespace.POOL, 'nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager, api_history_manager)
 
     # Timer Handlers Managers
     thmManager = TimerHandlerManager()
     thmManager.add_handler(HandlerNamespace.MANAGER, 'coin', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
     thmManager.add_handler(HandlerNamespace.MANAGER, 'pool', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
-    thmManager.add_handler(HandlerNamespace.MANAGER, 'database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager)
+    thmManager.add_handler(HandlerNamespace.MANAGER, 'database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager, api_history_manager)
 
     while app_is_running():
         # Timer Coins

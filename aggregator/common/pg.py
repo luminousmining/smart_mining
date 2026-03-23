@@ -6,7 +6,8 @@ from config import Config
 from common import (
     CoinManager,
     PoolManager,
-    HardwareManager
+    HardwareManager,
+    ApiHistoryManager
 )
 
 
@@ -135,6 +136,17 @@ class PostgreSQL:
                         ');'
                     self.execute(query)
 
+    def _update_api_history(self, api_history_manager: ApiHistoryManager) -> None:
+        records = api_history_manager.flush()
+        for record in records:
+            called_at = record.called_at.strftime('%Y-%m-%d %H:%M:%S')
+            message = record.message.replace("'", "''")
+            query = (
+                f"INSERT INTO api_history (api_name, success, duration_ms, message, called_at) "
+                f"VALUES ('{record.api_name}', {record.success}, {record.duration_ms}, '{message}', '{called_at}');"
+            )
+            self.execute(query)
+
     def _update_hardware(self, hardware_manager: HardwareManager) -> None:
         for hardware in hardware_manager._hardwares:
             name = hardware['name']
@@ -155,7 +167,7 @@ class PostgreSQL:
                     ');'
             self.execute(query)
 
-    def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager) -> None:
+    def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager, api_history_manager: ApiHistoryManager) -> None:
         ###########################################################################
         logging.info('===== POSTGRESQL =====')
 
@@ -174,6 +186,7 @@ class PostgreSQL:
         self._update_coin(coin_manager)
         self._update_pool(pool_manager)
         self._update_hardware(hardware_manager)
+        self._update_api_history(api_history_manager)
 
         ###########################################################################
         duration = time.time() - start_time
