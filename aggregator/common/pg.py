@@ -3,12 +3,10 @@ import psycopg2
 import logging
 
 from config import Config
-from common import (
-    CoinManager,
-    PoolManager,
-    HardwareManager,
-    ApiHistoryManager
-)
+from common.coin_manager import CoinManager
+from common.pool_manager import PoolManager
+from common.hardware_manager import HardwareManager
+from common.api_history_manager import ApiHistoryManager
 
 
 class PostgreSQL:
