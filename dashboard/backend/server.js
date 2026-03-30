@@ -175,14 +175,16 @@ app.get('/api/pool-tags', async (_req, res) => {
 
 app.get('/api/api-history', async (req, res) => {
   try {
-    const { api_name, success, limit } = req.query;
+    const { api_name, success, limit, from, to } = req.query;
     const params = [];
     const conditions = [];
 
     if (api_name) { params.push(api_name); conditions.push(`api_name = $${params.length}`); }
     if (success !== undefined) { params.push(success === 'true'); conditions.push(`success = $${params.length}`); }
+    if (from) { params.push(from); conditions.push(`called_at >= $${params.length}`); }
+    if (to)   { params.push(to);   conditions.push(`called_at <= $${params.length}`); }
 
-    const maxRows = Math.min(parseInt(limit) || 200, 1000);
+    const maxRows = Math.min(parseInt(limit) || 200, 5000);
     let query = 'SELECT id, api_name, success, duration_ms, message, called_at FROM api_history';
     if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
     query += ` ORDER BY called_at DESC LIMIT ${maxRows}`;

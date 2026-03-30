@@ -18,11 +18,13 @@ export const api = {
   poolNames:        (tag)          => get(tag ? `/pool-names?tag=${encodeURIComponent(tag)}` : '/pool-names'),
   poolHistory:      (name, tag, from, to) => get(`/pool-history?name=${encodeURIComponent(name)}${tag ? `&tag=${encodeURIComponent(tag)}` : ''}${from ? `&from=${from}` : ''}${to ? `&to=${to}` : ''}`),
   aggregatorStatus: ()             => get('/aggregator-status'),
-  apiHistory:       (api_name, success, limit) => {
+  apiHistory:       (api_name, success, limit, from, to) => {
     const params = new URLSearchParams();
     if (api_name) params.set('api_name', api_name);
     if (success !== undefined && success !== null) params.set('success', success);
     if (limit)    params.set('limit', limit);
+    if (from)     params.set('from', from);
+    if (to)       params.set('to', to);
     const qs = params.toString();
     return get('/api-history' + (qs ? '?' + qs : ''));
   },
