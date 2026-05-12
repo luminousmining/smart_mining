@@ -112,11 +112,23 @@ app.get('/api/pools', async (_req, res) => {
 
 app.get('/api/pool-stats', async (req, res) => {
   try {
-    const { tag } = req.query;
-    let query = 'SELECT * FROM pool_stats';
+    const { tag, limit } = req.query;
+    const maxRows = Math.min(parseInt(limit) || 200, 2000);
     const params = [];
-    if (tag) { query += ' WHERE tag = $1'; params.push(tag); }
-    query += ' ORDER BY name, tag, block_height DESC';
+    const where = tag ? (params.push(tag), 'WHERE tag = $1') : '';
+    const query = `
+      SELECT DISTINCT ON (name, tag, block_height) *
+      FROM pool_stats
+      ${where}
+      ORDER BY name, tag, block_height DESC,
+        CASE LOWER(block_status)
+          WHEN 'matured'   THEN 3
+          WHEN 'immature'  THEN 2
+          WHEN 'candidate' THEN 1
+          ELSE 0
+        END DESC
+      LIMIT ${maxRows}
+    `;
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
