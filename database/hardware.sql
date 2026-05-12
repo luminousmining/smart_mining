@@ -10,7 +10,7 @@ DROP TABLE IF EXISTS hardware;
 -----------------------------------------------------------
 CREATE TABLE hardware (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(32)
+    name VARCHAR(64)
 );
 ALTER TABLE hardware ADD CONSTRAINT unique_hardware_name UNIQUE (name);
 
@@ -28,7 +28,7 @@ ALTER TABLE hardware_mining ADD CONSTRAINT unique_hardware_algo UNIQUE (hardware
 
 -----------------------------------------------------------
 CREATE PROCEDURE insert_hardware(
-    p_name VARCHAR(32)
+    p_name VARCHAR(64)
 )
 LANGUAGE plpgsql
 AS $$
