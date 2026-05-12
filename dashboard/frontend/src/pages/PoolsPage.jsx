@@ -105,7 +105,11 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
   const { minHeight, maxHeight } = useMemo(() => {
     if (!allStats.length) return { minHeight: 0, maxHeight: 0 };
     const heights = allStats.map((r) => Number(r.block_height)).filter((v) => !isNaN(v));
-    return { minHeight: Math.min(...heights), maxHeight: Math.max(...heights) };
+    if (!heights.length) return { minHeight: 0, maxHeight: 0 };
+    return {
+      minHeight: heights.reduce((a, b) => (a < b ? a : b)),
+      maxHeight: heights.reduce((a, b) => (a > b ? a : b)),
+    };
   }, [allStats]);
 
   const stats = useMemo(() => {
