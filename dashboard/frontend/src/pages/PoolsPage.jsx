@@ -5,25 +5,13 @@ import DataTable from '../components/DataTable';
 import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
 
+const PAGE_SIZE = 50;
+
 const STATUS = {
   matured:   { bg: '#0d2a18', color: '#22c55e' },
   candidate: { bg: '#0d2030', color: '#00d4aa' },
   immature:  { bg: '#2a0d0d', color: '#ef4444' },
 };
-
-const STATUS_PRIORITY = { matured: 3, immature: 2, candidate: 1 };
-
-function deduplicateBlocks(rows) {
-  const map = new Map();
-  for (const row of rows) {
-    const key = `${row.name}|${row.tag}|${row.block_height}`;
-    const existing = map.get(key);
-    const rowPrio = STATUS_PRIORITY[row.block_status?.toLowerCase()] ?? 0;
-    const existPrio = existing ? (STATUS_PRIORITY[existing.block_status?.toLowerCase()] ?? 0) : -1;
-    if (!existing || rowPrio > existPrio) map.set(key, row);
-  }
-  return [...map.values()];
-}
 
 function StatusBadge({ value }) {
   if (!value) return <span style={{ color: '#3a3c55' }}>—</span>;
@@ -80,6 +68,7 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
   const [statusFilter, setStatusFilter] = useState('');
   const [heightMin, setHeightMin]       = useState('');
   const [heightMax, setHeightMax]       = useState('');
+  const [statsPage, setStatsPage]       = useState(0);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
 
@@ -87,7 +76,7 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
     try {
       const [p, st, tg] = await Promise.all([api.pools(), api.poolStats(), api.poolTags()]);
       setPools(p);
-      setStats(deduplicateBlocks(st));
+      setStats(st);
       setTags(tg);
       setLastUpdate(new Date());
     } finally {
@@ -101,14 +90,20 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
     return () => clearInterval(id);
   }, [load]);
 
-  // Compute block_height range from deduplicated data
+  // Reset to first page whenever filters change
+  useEffect(() => { setStatsPage(0); }, [tagFilter, statusFilter, heightMin, heightMax]);
+
   const { minHeight, maxHeight } = useMemo(() => {
     if (!allStats.length) return { minHeight: 0, maxHeight: 0 };
     const heights = allStats.map((r) => Number(r.block_height)).filter((v) => !isNaN(v));
-    return { minHeight: Math.min(...heights), maxHeight: Math.max(...heights) };
+    if (!heights.length) return { minHeight: 0, maxHeight: 0 };
+    return {
+      minHeight: heights.reduce((a, b) => (a < b ? a : b)),
+      maxHeight: heights.reduce((a, b) => (a > b ? a : b)),
+    };
   }, [allStats]);
 
-  const stats = useMemo(() => {
+  const filteredStats = useMemo(() => {
     const lo = heightMin !== '' ? Number(heightMin) : null;
     const hi = heightMax !== '' ? Number(heightMax) : null;
     return allStats.filter((r) =>
@@ -119,12 +114,20 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
     );
   }, [allStats, tagFilter, statusFilter, heightMin, heightMax]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredStats.length / PAGE_SIZE));
+  const pagedStats = useMemo(
+    () => filteredStats.slice(statsPage * PAGE_SIZE, (statsPage + 1) * PAGE_SIZE),
+    [filteredStats, statsPage]
+  );
+
   const filteredPools = useMemo(
     () => tagFilter ? pools.filter((p) => p.tag === tagFilter) : pools,
     [pools, tagFilter]
   );
 
-  const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()} · refresh 30s` : 'Loading…';
+  const sub = lastUpdate
+    ? `Updated ${lastUpdate.toLocaleTimeString()} · ${filteredStats.length} blocks · refresh 30s`
+    : 'Loading…';
 
   return (
     <div>
@@ -171,7 +174,19 @@ export default function PoolsPage({ onNavigate, refreshInterval = 30_000 }) {
             <DataTable columns={buildPoolCols(onNavigate)} rows={filteredPools} />
           </Card>
           <Card title="Block Statistics">
-            <DataTable columns={STATS_COLS} rows={stats} />
+            <DataTable columns={STATS_COLS} rows={pagedStats} />
+            {totalPages > 1 && (
+              <div style={s.pagination}>
+                <button style={s.pageBtn} disabled={statsPage === 0} onClick={() => setStatsPage(0)}>«</button>
+                <button style={s.pageBtn} disabled={statsPage === 0} onClick={() => setStatsPage((p) => p - 1)}>‹</button>
+                <span style={s.pageInfo}>
+                  {statsPage + 1} / {totalPages}
+                  <span style={{ color: '#4a4c6a', marginLeft: 6 }}>({filteredStats.length} rows)</span>
+                </span>
+                <button style={s.pageBtn} disabled={statsPage >= totalPages - 1} onClick={() => setStatsPage((p) => p + 1)}>›</button>
+                <button style={s.pageBtn} disabled={statsPage >= totalPages - 1} onClick={() => setStatsPage(totalPages - 1)}>»</button>
+              </div>
+            )}
           </Card>
         </>
       )}
@@ -196,4 +211,14 @@ const s = {
     padding: '6px 10px', borderRadius: 7, border: '1px solid #1e2038',
     fontSize: 12, color: '#c8c8e0', background: '#111221', cursor: 'pointer', outline: 'none',
   },
+  pagination: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    padding: '12px 0 4px', borderTop: '1px solid #161728', marginTop: 4,
+  },
+  pageBtn: {
+    padding: '4px 10px', borderRadius: 6, border: '1px solid #1e2038',
+    background: 'transparent', color: '#6b6d8a', cursor: 'pointer', fontSize: 13,
+    transition: 'all 0.15s',
+  },
+  pageInfo: { fontSize: 12, color: '#c8c8e0', minWidth: 80, textAlign: 'center' },
 };
