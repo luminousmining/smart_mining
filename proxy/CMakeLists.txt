@@ -76,7 +76,7 @@ set(OPEN_SSL_LIBRARIES OpenSSL::SSL OpenSSL::Crypto)
 ################################################################################
 ### FIND PACKAGE | LIBRARIES                                                ####
 ################################################################################
-find_package(Boost 1.86.0 EXACT COMPONENTS atomic chrono filesystem system json thread serialization program_options)
+find_package(Boost 1.91.0 EXACT COMPONENTS atomic chrono filesystem system json thread serialization program_options)
 find_package(OpenSSL 1.1.1 REQUIRED COMPONENTS SSL Crypto)
 if (UNIX)
     find_package(GnuTLS)

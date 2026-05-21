@@ -65,46 +65,62 @@ boost::json::value mining::apiGet(std::string const& endpoint)
 
 boost::json::array mining::apiInfoCoins()
 {
-    return apiGet("/info/coins").as_array();
+    auto result{ apiGet("/info/coins") };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }
 
 
 boost::json::object mining::apiInfoCoin(std::string const& tag)
 {
     std::string endpoint{ "/info/coin/" + tag };
-    return apiGet(endpoint).as_object();
+    auto result{ apiGet(endpoint) };
+    if (!result.is_object()) { return {}; }
+    return result.as_object();
 }
 
 
 boost::json::array mining::apiProfileEmission()
 {
-    return apiGet("/profile/emission").as_array();
+    auto result{ apiGet("/profile/emission") };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }
 
 
 boost::json::array mining::apiProfileHashUsd()
 {
-    return apiGet("/profile/hash_usd").as_array();
+    auto result{ apiGet("/profile/hash_usd") };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }
 
 
 boost::json::array mining::apiProfileUsdSec()
 {
-    return apiGet("/profile/usd_sec").as_array();
+    auto result{ apiGet("/profile/usd_sec") };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }
 
 
 boost::json::array mining::apiProfileMarketCap()
 {
-    return apiGet("/profile/market_cap").as_array();
+    auto result{ apiGet("/profile/market_cap") };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }
 
 
 boost::json::array mining::apiProfileNetworkHashrate(bool const greater)
 {
-    if (true == greater)
+    std::string const endpoint
     {
-        return apiGet("/profile/network_hashrate/greater").as_array();
-    }
-    return apiGet("/profile/network_hashrate/less").as_array();
+        true == greater
+            ? "/profile/network_hashrate/greater"
+            : "/profile/network_hashrate/less"
+    };
+    auto result{ apiGet(endpoint) };
+    if (!result.is_array()) { return {}; }
+    return result.as_array();
 }

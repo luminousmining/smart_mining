@@ -45,7 +45,7 @@ void network::session::Session::onReceivePacketMiner(
         if (boost::system::errc::errc_t::success == ec)
         {
             std::string rpc{};
-            rpc.assign(boost::asio::buffer_cast<const char*>(minerData.stream->buffer.data()), bytes);
+            rpc.assign(static_cast<const char*>(minerData.stream->buffer.data().data()), bytes);
             minerData.stream->buffer.consume(bytes);
 
             if (false == rpc.empty())

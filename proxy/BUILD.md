@@ -3,7 +3,7 @@
 ## Dependencies
 - CMake >= 3.22.4
 - OpenSSL == 1.1.1
-- boost == 1.86.0
+- boost == 1.91.0
   
 ## Install
 cmake: https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.sh  

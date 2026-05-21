@@ -43,21 +43,6 @@ void network::IOStream::initializeContext(boost::asio::io_context& ioContext, bo
 }
 
 
-void network::IOStream::initializeService(boost::asio::io_service& ioService, bool const isSSL)
-{
-    ssl = isSSL;
-    if (true == ssl)
-    {
-         doSecureConnection();
-    }
-    else
-    {
-        sslContext.set_verify_mode(boost::asio::ssl::verify_none);
-    }
-    socket = NEW(boost::asio::ssl::stream<boost::asio::ip::tcp::socket>(ioService, sslContext));
-}
-
-
 
 void network::IOStream::close()
 {

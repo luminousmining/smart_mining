@@ -45,7 +45,7 @@ void network::session::Session::onReceivePacketPool(
         if (boost::system::errc::errc_t::success == ec)
         {
             std::string rpc{};
-            rpc.assign(boost::asio::buffer_cast<const char*>(poolData.stream->buffer.data()), bytes);
+            rpc.assign(static_cast<const char*>(poolData.stream->buffer.data().data()), bytes);
             poolData.stream->buffer.consume(bytes);
 
             if (   0 < bytes

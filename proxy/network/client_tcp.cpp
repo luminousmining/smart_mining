@@ -15,7 +15,7 @@ std::string network::ClientTCP::getAddress() const
 void network::ClientTCP::run()
 {
     threadService.interrupt();
-    threadService = boost::thread{ boost::bind(&boost::asio::io_service::run, &ioService) };
+    threadService = boost::thread{ boost::bind(&boost::asio::io_context::run, &ioService) };
 }
 
 
@@ -26,7 +26,7 @@ network::IOStream* network::ClientTCP::connect(std::string const& _hostname, uin
     {
         return nullptr;
     }
-    stream->initializeService(ioService, false);
+    stream->initializeContext(ioService, false);
 
     hostname = _hostname;
     port = _port;
@@ -34,13 +34,12 @@ network::IOStream* network::ClientTCP::connect(std::string const& _hostname, uin
     try
     {
         boost::system::error_code ec{};
-        auto const address{ boost::asio::ip::address::from_string(hostname, ec) };
+        auto const address{ boost::asio::ip::make_address(hostname, ec) };
 
         if (boost::system::errc::errc_t::success != ec)
         {
-            boost::asio::ip::tcp::resolver        resolver{ ioService };
-            boost::asio::ip::tcp::resolver::query query{ hostname, std::to_string(port) };
-            auto                                  endpoints{ resolver.resolve(query, ec) };
+            boost::asio::ip::tcp::resolver resolver{ ioService };
+            auto                           endpoints{ resolver.resolve(hostname, std::to_string(port), ec) };
 
             if (boost::system::errc::errc_t::success != ec)
             {

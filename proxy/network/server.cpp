@@ -20,8 +20,6 @@ bool network::ServerTCP::bind()
 {
     disconnect();
 
-    logInfo() << "Bind server on port " << port;
-
     try
     {
         using boost_tcp = boost::asio::ip::tcp;
@@ -29,6 +27,9 @@ bool network::ServerTCP::bind()
 
         acceptor = boost_tcp::acceptor{ ioContext, boost_endpoint(boost_tcp::v4(), port) };
         acceptor.set_option(boost_tcp::acceptor::reuse_address(true));
+
+        auto const ep{ acceptor.local_endpoint() };
+        logInfo() << "Listening on " << ep.address().to_string() << ":" << ep.port();
 
         if (false == acceptAsync())
         {

@@ -23,7 +23,6 @@ namespace network
             ~IOStream();
 
             void initializeContext(boost::asio::io_context& ioContext, bool const isSSL);
-            void initializeService(boost::asio::io_service& ioService, bool const isSSL);
             void close();
             bool write(boost::json::value const& request);
             void doSecureConnection();
