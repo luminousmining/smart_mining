@@ -26,6 +26,14 @@ from workflow import (
     workflow_coin_manager,
     workflow_database_manager
 )
+from workflow import (
+    workflow_explorer_ergo,
+    workflow_explorer_kaspa,
+    workflow_explorer_rvn,
+    workflow_explorer_xmr,
+    workflow_explorer_cfx,
+    workflow_explorer_etc
+)
 
 
 def get_seconds(seconds: int) -> int:
@@ -124,6 +132,18 @@ def run_application(config: Config) -> None:
         thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager, api_history_manager)
     if config.apis.coingecko:
         thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager, api_history_manager)
+    if 'erg' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_erg', get_seconds(t.explorer_erg), workflow_explorer_ergo, config, coin_manager, api_history_manager)
+    if 'kas' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_kas', get_seconds(t.explorer_kas), workflow_explorer_kaspa, config, coin_manager, api_history_manager)
+    if 'rvn' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_rvn', get_seconds(t.explorer_rvn), workflow_explorer_rvn, config, coin_manager, api_history_manager)
+    if 'xmr' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_xmr', get_seconds(t.explorer_xmr), workflow_explorer_xmr, config, coin_manager, api_history_manager)
+    if 'cfx' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_cfx', get_seconds(t.explorer_cfx), workflow_explorer_cfx, config, coin_manager, api_history_manager)
+    if 'etc' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_etc', get_seconds(t.explorer_etc), workflow_explorer_etc, config, coin_manager, api_history_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
@@ -152,6 +172,15 @@ def run_application(config: Config) -> None:
         thmPool.process(HandlerNamespace.POOL, '2miner')
         thmPool.process(HandlerNamespace.POOL, 'miner_stat')
         thmPool.process(HandlerNamespace.POOL, 'nanopool')
+
+        # Timer Explorer
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_erg')
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_kas')
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_rvn')
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_xmr')
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_cfx')
+        thmCoin.process(HandlerNamespace.COIN, 'explorer_etc')
+
 
         # Timer Managers
         thmManager.process(HandlerNamespace.MANAGER, 'coin_manager')

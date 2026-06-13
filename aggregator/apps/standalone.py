@@ -26,6 +26,14 @@ from workflow import (
     workflow_pool_miner_stat,
     workflow_pool_2miners
 )
+from workflow import (
+    workflow_explorer_ergo,
+    workflow_explorer_kaspa,
+    workflow_explorer_rvn,
+    workflow_explorer_xmr,
+    workflow_explorer_cfx,
+    workflow_explorer_etc
+)
 
 
 def run_standalone(config: Config) -> None:
@@ -57,7 +65,7 @@ def run_standalone(config: Config) -> None:
 
     # Establish database connection
     pg = PostgreSQL(config)
-    if not pg.connect():
+    if config.db.update and not pg.connect():
         return
 
     # Fetch cryptocurrency data from multiple external APIs
@@ -71,6 +79,14 @@ def run_standalone(config: Config) -> None:
     workflow_pool_2miners(config, pool_manager, api_history_manager)
     workflow_pool_miner_stat(config, coin_manager, pool_manager, api_history_manager)
     workflow_pool_nanopool(config, pool_manager, api_history_manager)
+
+    # Fetch on-chain data directly from blockchain explorers (runs last to overwrite secondary sources)
+    workflow_explorer_ergo(config, coin_manager, api_history_manager)
+    workflow_explorer_kaspa(config, coin_manager, api_history_manager)
+    workflow_explorer_rvn(config, coin_manager, api_history_manager)
+    workflow_explorer_xmr(config, coin_manager, api_history_manager)
+    workflow_explorer_cfx(config, coin_manager, api_history_manager)
+    workflow_explorer_etc(config, coin_manager, api_history_manager)
 
     # Process and finalize collected data
     coin_manager.update()
@@ -87,4 +103,4 @@ def run_standalone(config: Config) -> None:
 
     # Close database connection
     if pg.is_connected() is True:
-        pg.disconnect()
+            pg.disconnect()

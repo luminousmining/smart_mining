@@ -73,23 +73,24 @@ class PostgreSQL:
         self.connection.commit()
 
     def disconnect(self) -> bool:
-        if not self.cursor:
-            logging.error(f'❌ Cursor is invalid')
-            return False
         if not self.connection:
             logging.error(f'❌ Connection is invalid')
+            return False
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
             return False
 
         self.cursor.close()
         self.connection.close()
+
         return True
 
     def is_connected(self) -> bool:
-        if not self.cursor:
-            logging.error(f'❌ Cursor is invalid')
-            return False
         if not self.connection:
             logging.error(f'❌ Connection is invalid')
+            return False
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
             return False
 
         return True

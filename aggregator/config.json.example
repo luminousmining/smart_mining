@@ -48,7 +48,17 @@
         {
             "use_api": true,
             "host": "https://api.nanopool.org/v1"
+        },
+        "explorer":
+        {
+            "erg": { "use_api": true, "host": "https://api.ergoplatform.com" },
+            "kas": { "use_api": true, "host": "https://api.kaspa.org" },
+            "rvn": { "use_api": true, "host": "https://rvn-rpc-mainnet.ting.finance/rpc", "rpc_user": "anonymous", "rpc_password": "anonymous" },
+            "xmr": { "use_api": true, "host": "https://xmrchain.net" },
+            "cfx": { "use_api": true, "host": "https://api.confluxscan.io" },
+            "etc": { "use_api": true, "host": "https://etc.blockscout.com" }
         }
+
     },
     "timers":
     {
@@ -71,6 +81,15 @@
             "coin_manager": 30,
             "pool_manager": 30,
             "database": 30
+        },
+        "explorer":
+        {
+            "erg": 60,
+            "kas": 60,
+            "rvn": 60,
+            "xmr": 120,
+            "cfx": 60,
+            "etc": 60
         }
     }
 }

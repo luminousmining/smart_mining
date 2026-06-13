@@ -15,3 +15,11 @@ from workflow.managers import (
     workflow_coin_manager,
     workflow_database_manager
 )
+from workflow.explorer import (
+    workflow_explorer_ergo,
+    workflow_explorer_kaspa,
+    workflow_explorer_rvn,
+    workflow_explorer_xmr,
+    workflow_explorer_cfx,
+    workflow_explorer_etc
+)

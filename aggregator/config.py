@@ -7,7 +7,9 @@ class ConfigAPI:
     def __init__(self, data) -> None:
         self.use_api = data['use_api']
         self.host = data['host']
-        self.api_key = data['api_key'] if 'api_key' in data else ''
+        self.api_key = data.get('api_key', '')
+        self.rpc_user = data.get('rpc_user', '')
+        self.rpc_password = data.get('rpc_password', '')
 
     def __str__(self) -> str:
         return  f'use_api[{self.use_api}] - '\
@@ -24,6 +26,7 @@ class ConfigAPIS:
         self.coingecko = None
         self.two_miners = None
         self.nanopool = None
+        self.explorer: dict = {}
 
 
 class ConfigDB:
@@ -56,6 +59,14 @@ class ConfigTimers:
         self.coin_manager = managers.get('coin_manager', 30)
         self.pool_manager = managers.get('pool_manager', 30)
         self.database = managers.get('database', 30)
+
+        explorer = data.get('explorer', {})
+        self.explorer_erg = explorer.get('erg', 60)
+        self.explorer_kas = explorer.get('kas', 60)
+        self.explorer_rvn = explorer.get('rvn', 60)
+        self.explorer_xmr = explorer.get('xmr', 120)
+        self.explorer_cfx = explorer.get('cfx', 60)
+        self.explorer_etc = explorer.get('etc', 60)
 
 
 class ConfigBenchmark:
@@ -91,6 +102,9 @@ class Config:
                 self.apis.coingecko = ConfigAPI(api_obj['coingecko']) if 'coingecko' in api_obj else None
                 self.apis.two_miners = ConfigAPI(api_obj['2miners']) if '2miners' in api_obj else None
                 self.apis.nanopool = ConfigAPI(api_obj['nanopool']) if 'nanopool' in api_obj else None
+                if 'explorer' in api_obj:
+                    for tag, cfg in api_obj['explorer'].items():
+                        self.apis.explorer[tag] = ConfigAPI(cfg)
 
             self.timers = ConfigTimers(data['timers']) if 'timers' in data else ConfigTimers({})
 

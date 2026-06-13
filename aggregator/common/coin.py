@@ -8,6 +8,7 @@ class Coin:
         self.tag = None
         self.algorithm = None
         self.reward = Reward()
+        self.block_height = None
 
     def merge(self, other, new_assign: bool = False):
         #######################################################################
@@ -30,6 +31,7 @@ class Coin:
         data['tag'] = self.tag
         data['algorithm'] = self.algorithm
         data['reward'] = self.reward.to_dict()
+        data['block_height'] = self.block_height
 
         return data
 
@@ -114,3 +116,17 @@ def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
     coin.reward.network_hashrate = float(data['network_hashrate']) if data['network_hashrate'] != -1 else coin.reward.network_hashrate
     coin.reward.difficulty = float(data['difficulty']) if data['difficulty'] != -1 else coin.reward.difficulty
     coin.reward.market_cap = float(data['volume']) if data['volume'] != -1 else coin.reward.market_cap
+
+
+def update_coin_by_explorer(
+    coin: Coin,
+    network_hashrate: 'float | None',
+    difficulty: 'float | None',
+    block_height: 'int | None'
+) -> None:
+    if network_hashrate:
+        coin.reward.network_hashrate = float(network_hashrate)
+    if difficulty:
+        coin.reward.difficulty = float(difficulty)
+    if block_height:
+        coin.block_height = int(block_height)
