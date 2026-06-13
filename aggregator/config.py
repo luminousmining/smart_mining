@@ -43,17 +43,19 @@ class ConfigDB:
 class ConfigTimers:
 
     def __init__(self, data) -> None:
-        coins = data.get('coins', {})
-        self.hashrate_no = coins.get('hashrate_no', 3)
-        self.what_to_mine = coins.get('what_to_mine', 5)
-        self.miner_stat_coin = coins.get('miner_stat', 12)
-        self.binance = coins.get('binance', 8)
-        self.coingecko = coins.get('coingecko', 20)
+        market = data.get('market', {})
+        self.binance = market.get('binance', 8)
+        self.coingecko = market.get('coingecko', 20)
 
-        pools = data.get('pools', {})
-        self.two_miners = pools.get('2miners', 5)
-        self.miner_stat_pool = pools.get('miner_stat', 10)
-        self.nanopool = pools.get('nanopool', 1)
+        mining = data.get('mining', {})
+        self.hashrate_no = mining.get('hashrate_no', 3)
+        self.what_to_mine = mining.get('what_to_mine', 5)
+        self.miner_stat_coin = mining.get('miner_stat', 12)
+
+        pool = data.get('pool', {})
+        self.two_miners = pool.get('2miners', 5)
+        self.miner_stat_pool = pool.get('miner_stat', 10)
+        self.nanopool = pool.get('nanopool', 1)
 
         managers = data.get('managers', {})
         self.coin_manager = managers.get('coin_manager', 30)
@@ -93,18 +95,23 @@ class Config:
             self.folder_output = data['folder_output']
 
             self.apis = ConfigAPIS()
-            if 'api' in data:
-                api_obj = data['api']
-                self.apis.hashrate_no = ConfigAPI(api_obj['hashrate_no']) if 'hashrate_no' in api_obj else None
-                self.apis.what_to_mine = ConfigAPI(api_obj['whattomine']) if 'whattomine' in api_obj else None
-                self.apis.binance = ConfigAPI(api_obj['binance']) if 'binance' in api_obj else None
-                self.apis.minerstat = ConfigAPI(api_obj['minerstat']) if 'minerstat' in api_obj else None
-                self.apis.coingecko = ConfigAPI(api_obj['coingecko']) if 'coingecko' in api_obj else None
-                self.apis.two_miners = ConfigAPI(api_obj['2miners']) if '2miners' in api_obj else None
-                self.apis.nanopool = ConfigAPI(api_obj['nanopool']) if 'nanopool' in api_obj else None
-                if 'explorer' in api_obj:
-                    for tag, cfg in api_obj['explorer'].items():
-                        self.apis.explorer[tag] = ConfigAPI(cfg)
+
+            market_obj = data.get('market', {})
+            self.apis.binance = ConfigAPI(market_obj['binance']) if 'binance' in market_obj else None
+            self.apis.coingecko = ConfigAPI(market_obj['coingecko']) if 'coingecko' in market_obj else None
+
+            mining_obj = data.get('mining', {})
+            self.apis.hashrate_no = ConfigAPI(mining_obj['hashrate_no']) if 'hashrate_no' in mining_obj else None
+            self.apis.what_to_mine = ConfigAPI(mining_obj['whattomine']) if 'whattomine' in mining_obj else None
+            self.apis.minerstat = ConfigAPI(mining_obj['minerstat']) if 'minerstat' in mining_obj else None
+
+            pool_obj = data.get('pool', {})
+            self.apis.two_miners = ConfigAPI(pool_obj['2miners']) if '2miners' in pool_obj else None
+            self.apis.nanopool = ConfigAPI(pool_obj['nanopool']) if 'nanopool' in pool_obj else None
+
+            explorer_obj = data.get('explorer', {})
+            for tag, cfg in explorer_obj.items():
+                self.apis.explorer[tag] = ConfigAPI(cfg)
 
             self.timers = ConfigTimers(data['timers']) if 'timers' in data else ConfigTimers({})
 

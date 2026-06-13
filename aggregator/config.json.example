@@ -4,12 +4,26 @@
     "db":
     {
         "host": "localhost",
-        "name": "postgres",
+        "database": "postgres",
         "username": "postgres",
         "password": "root",
         "port": 5432
     },
-    "api":
+    "market":
+    {
+        "binance":
+        {
+            "use_api": true,
+            "host": "https://api.binance.com"
+        },
+        "coingecko":
+        {
+            "use_api": true,
+            "api_key": "YOUR_API_KEY",
+            "host": "https://api.coingecko.com/api/v3"
+        }
+    },
+    "mining":
     {
         "hashrate_no":
         {
@@ -22,23 +36,15 @@
             "use_api": true,
             "host": "https://whattomine.com"
         },
-        "binance":
-        {
-            "use_api": true,
-            "host": "https://api.binance.com"
-        },
         "minerstat":
         {
             "use_api": true,
             "api_key": "YOUR_API_KEY",
             "host": "https://api.minerstat.com"
-        },
-        "coingecko":
-        {
-            "use_api": true,
-            "api_key": "YOUR_API_KEY",
-            "host": "https://api.coingecko.com/api/v3"
-        },
+        }
+    },
+    "pool":
+    {
         "2miners":
         {
             "use_api": true,
@@ -48,29 +54,31 @@
         {
             "use_api": true,
             "host": "https://api.nanopool.org/v1"
-        },
-        "explorer":
-        {
-            "erg": { "use_api": true, "host": "https://api.ergoplatform.com" },
-            "kas": { "use_api": true, "host": "https://api.kaspa.org" },
-            "rvn": { "use_api": true, "host": "https://rvn-rpc-mainnet.ting.finance/rpc", "rpc_user": "anonymous", "rpc_password": "anonymous" },
-            "xmr": { "use_api": true, "host": "https://xmrchain.net" },
-            "cfx": { "use_api": true, "host": "https://api.confluxscan.io" },
-            "etc": { "use_api": true, "host": "https://etc.blockscout.com" }
         }
-
+    },
+    "explorer":
+    {
+        "erg": { "use_api": true, "host": "https://api.ergoplatform.com" },
+        "kas": { "use_api": true, "host": "https://api.kaspa.org" },
+        "rvn": { "use_api": true, "host": "https://rvn-rpc-mainnet.ting.finance/rpc", "rpc_user": "anonymous", "rpc_password": "anonymous" },
+        "xmr": { "use_api": true, "host": "https://xmrchain.net" },
+        "cfx": { "use_api": true, "host": "https://api.confluxscan.io" },
+        "etc": { "use_api": true, "host": "https://etc.blockscout.com" }
     },
     "timers":
     {
-        "coins":
+        "market":
         {
-            "hashrate_no": 3,
-            "what_to_mine": 5,
-            "miner_stat": 12,
             "binance": 8,
             "coingecko": 20
         },
-        "pools":
+        "mining":
+        {
+            "hashrate_no": 3,
+            "what_to_mine": 5,
+            "miner_stat": 12
+        },
+        "pool":
         {
             "2miners": 5,
             "miner_stat": 10,
