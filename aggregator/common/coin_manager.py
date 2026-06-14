@@ -55,8 +55,8 @@ class CoinManager:
             self._coins[coin.name].merge(coin, new_assign)
         else:
             for _, data in self._coins.items():
-                if data.tag == coin.tag:
-                    data.merge(coin)
+                if coin.tag and data.tag == coin.tag:
+                    data.merge(coin, new_assign)
                     return
             self._coins[coin.name] = coin
 
