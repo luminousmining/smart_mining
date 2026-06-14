@@ -68,7 +68,7 @@ def workflow_pool_miner_stat(config: Config, coin_manager: CoinManager, pool_man
                 pool.coins[coin.name]['anonymous'] = anonymous
                 pool.coins[coin.name]['registration'] = registration
 
-                pool_manager.insert(pool)
+                pool_manager.update_pool(pool)
 
         success = True
 
@@ -86,7 +86,7 @@ def workflow_pool_nanopool(config: Config, pool_manager: PoolManager, api_histor
     logging.info('===== WORKFLOW NANOPOOL POOL =====')
 
     ###########################################################################
-    if not config.apis.two_miners:
+    if not config.apis.nanopool:
         logging.info('🚮 Skipped!')
         return
 
