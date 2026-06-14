@@ -36,7 +36,7 @@ class Coin:
         return data
 
 
-def create_coin_by_hashrate_no(data: dict) -> Coin:
+def update_coin_by_hashrate_no(data: dict) -> Coin:
     #######################################################################
     coin = Coin()
 
@@ -73,7 +73,7 @@ def create_coin_by_hashrate_no(data: dict) -> Coin:
     return coin
 
 
-def create_coin_by_what_to_mine(name: str, data: dict) -> Coin:
+def update_coin_by_what_to_mine(name: str, data: dict) -> Coin:
     #######################################################################
     coin = Coin()
 

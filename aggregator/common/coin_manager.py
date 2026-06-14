@@ -83,7 +83,8 @@ class CoinManager:
                 keys_to_remove.append(key)
 
         for key in keys_to_remove:
-            logging.debug(f'🔥 Need fix coin {key} -> {self._coins[key].to_dict()}')
+            logging.debug(f'🔥 Removing invalid coin {key} -> {self._coins[key].to_dict()}')
+            del self._coins[key]
 
         for _, coin in self._coins.items():
             if coin.algorithm not in self._algorithms:

@@ -5,8 +5,8 @@ from common.block import (
 from common.reward import Reward
 from common.coin import (
     Coin,
-    create_coin_by_hashrate_no,
-    create_coin_by_what_to_mine,
+    update_coin_by_hashrate_no,
+    update_coin_by_what_to_mine,
     update_coin_by_minerstat,
     update_coin_by_explorer
 )

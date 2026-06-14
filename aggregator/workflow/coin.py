@@ -13,8 +13,8 @@ from common import (
     CoinManager,
     HardwareManager,
     ApiHistoryManager,
-    create_coin_by_what_to_mine,
-    create_coin_by_hashrate_no,
+    update_coin_by_what_to_mine,
+    update_coin_by_hashrate_no,
     update_coin_by_minerstat
 )
 
@@ -142,7 +142,7 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
         coins = api.get_coins()
         if coins:
             for _, value in coins.items():
-                coin = create_coin_by_hashrate_no(value)
+                coin = update_coin_by_hashrate_no(value)
                 if coin:
                     coin_manager.insert(coin)
             success = True
@@ -250,7 +250,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
     try:
         coins = api.get_coins()
         for name, value in coins.items():
-            coin = create_coin_by_what_to_mine(name.lower(), value)
+            coin = update_coin_by_what_to_mine(name.lower(), value)
             if coin:
                 coin_manager.insert(coin)
 
