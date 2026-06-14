@@ -115,7 +115,6 @@ def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
     coin.reward.usd = float(data['price']) if data['price'] != -1 else coin.reward.usd
     coin.reward.network_hashrate = float(data['network_hashrate']) if data['network_hashrate'] != -1 else coin.reward.network_hashrate
     coin.reward.difficulty = float(data['difficulty']) if data['difficulty'] != -1 else coin.reward.difficulty
-    coin.reward.market_cap = float(data['volume']) if data['volume'] != -1 else coin.reward.market_cap
 
 
 def update_coin_by_explorer(
