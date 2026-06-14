@@ -8,6 +8,7 @@ from common.coin import (
     update_coin_by_hashrate_no,
     update_coin_by_what_to_mine,
     update_coin_by_minerstat,
+    update_coin_by_coingecko,
     update_coin_by_explorer
 )
 from common.pool import (

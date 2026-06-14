@@ -14,12 +14,27 @@ class CoinGeckoAPI(ApiHTTP):
         self.use_api = config.use_api
         self.path_dump_file = os.path.join(folder_output, 'coingecko')
         self.dump_file_coins = os.path.join(self.path_dump_file, 'coins.json')
+        self.dump_file_prices = os.path.join(self.path_dump_file, 'prices.json')
 
         if self.use_api and config.api_key:
             self.update_header('x-cg-demo-api-key', self.api_key)
 
         if not os.path.exists(self.path_dump_file):
             os.makedirs(self.path_dump_file)
+
+    def get_price(self, ids: str) -> dict:
+        output_file = self.dump_file_prices
+
+        if self.use_api and self.api_key:
+            prices = self.get(f'simple/price?ids={ids}&vs_currencies=usd')
+            logging.debug(f'📥 Dumping in {output_file}')
+            with open(output_file, 'w') as fd:
+                json.dump(prices, fd, indent=4)
+            return prices
+        else:
+            logging.debug(f'🔍 Read dump {output_file}')
+            with open(output_file) as fd:
+                return json.load(fd)
 
     def get_coins_list(self) -> dict:
         output_file = self.dump_file_coins

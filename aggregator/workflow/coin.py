@@ -15,7 +15,8 @@ from common import (
     ApiHistoryManager,
     update_coin_by_what_to_mine,
     update_coin_by_hashrate_no,
-    update_coin_by_minerstat
+    update_coin_by_minerstat,
+    update_coin_by_coingecko
 )
 
 
@@ -101,9 +102,35 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
     try:
         ###########################################################################
         logging.info('🔄 get list coins...')
-        coins = api.get_coins_list()
-        for coin in coins:
-            symbol = coin['symbol'].lower()
+        coins_list = api.get_coins_list()
+        symbol_to_id = {c['symbol'].lower(): c['id'] for c in coins_list}
+
+        ###########################################################################
+        logging.info('🔄 collect coins to enrich...')
+        ids_to_fetch = []
+        for tag, cg_id in symbol_to_id.items():
+            if coin_manager.get_from_tag(tag):
+                ids_to_fetch.append(cg_id)
+
+        if not ids_to_fetch:
+            success = True
+            return
+
+        ###########################################################################
+        logging.info('🔄 get prices...')
+        prices = api.get_price(','.join(ids_to_fetch))
+
+        ###########################################################################
+        logging.info('🔄 update coins price...')
+        for tag, cg_id in symbol_to_id.items():
+            if cg_id not in prices:
+                continue
+            coin = coin_manager.get_from_tag(tag)
+            if not coin:
+                continue
+            usd = prices[cg_id].get('usd')
+            if usd:
+                update_coin_by_coingecko(coin, usd)
 
         success = True
 

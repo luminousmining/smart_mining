@@ -117,6 +117,10 @@ def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
     coin.reward.difficulty = float(data['difficulty']) if data['difficulty'] != -1 else coin.reward.difficulty
 
 
+def update_coin_by_coingecko(coin: Coin, usd: float) -> None:
+    coin.reward.usd = float(usd)
+
+
 def update_coin_by_explorer(
     coin: Coin,
     network_hashrate: 'float | None',
