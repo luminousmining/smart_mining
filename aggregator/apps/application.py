@@ -132,6 +132,8 @@ def run_application(config: Config) -> None:
         thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager, api_history_manager)
     if config.apis.coingecko:
         thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager, api_history_manager)
+
+    # Timer Handlers Explorers
     if 'erg' in config.apis.explorer:
         thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_erg', get_seconds(t.explorer_erg), workflow_explorer_ergo, config, coin_manager, api_history_manager)
     if 'kas' in config.apis.explorer:
@@ -156,7 +158,7 @@ def run_application(config: Config) -> None:
 
     # Timer Handlers Managers
     thmManager = TimerHandlerManager()
-    thmManager.add_handler(HandlerNamespace.MANAGER, 'coin', get_seconds(t.coin_manager), workflow_coin_manager, config, pool_manager)
+    thmManager.add_handler(HandlerNamespace.MANAGER, 'coin', get_seconds(t.coin_manager), workflow_coin_manager, config, coin_manager)
     thmManager.add_handler(HandlerNamespace.MANAGER, 'pool', get_seconds(t.pool_manager), workflow_pool_manager, config, pool_manager)
     thmManager.add_handler(HandlerNamespace.MANAGER, 'database', get_seconds(t.database), workflow_database_manager, config, pg, coin_manager, pool_manager, hardware_manager, api_history_manager)
 
@@ -180,7 +182,6 @@ def run_application(config: Config) -> None:
         thmCoin.process(HandlerNamespace.COIN, 'explorer_xmr')
         thmCoin.process(HandlerNamespace.COIN, 'explorer_cfx')
         thmCoin.process(HandlerNamespace.COIN, 'explorer_etc')
-
 
         # Timer Managers
         thmManager.process(HandlerNamespace.MANAGER, 'coin_manager')
