@@ -4,6 +4,7 @@ import time
 import logging
 
 from common import Coin
+from common.numeric import _is_nan_or_negative
 
 
 class CoinManager:
@@ -71,19 +72,29 @@ class CoinManager:
         return None
 
     def update(self) -> None:
-        keys_to_remove  = list()
+        keys_to_remove = list()
 
         for key, coin in self._coins.items():
             reward = coin.reward
             reward.update()
 
-            if not reward.emission_usd or reward.emission_usd <= float(0.0):
+            for attr in ('usd', 'network_hashrate', 'difficulty'):
+                val = getattr(reward, attr)
+                if _is_nan_or_negative(val):
+                    logging.warning(f'⚠️ {key}: {attr}={val} invalide, remis à None')
+                    setattr(reward, attr, None)
+
+            reason = None
+            if not reward.emission_usd or reward.emission_usd <= 0.0 or _is_nan_or_negative(reward.emission_usd):
+                reason = f'emission_usd invalide ({reward.emission_usd})'
+            elif not reward.market_cap or _is_nan_or_negative(reward.market_cap):
+                reason = f'market_cap invalide ({reward.market_cap})'
+
+            if reason:
                 keys_to_remove.append(key)
-            elif not reward.market_cap:
-                keys_to_remove.append(key)
+                logging.warning(f'🔥 Coin rejeté [{key}] — {reason}')
 
         for key in keys_to_remove:
-            logging.debug(f'🔥 Removing invalid coin {key} -> {self._coins[key].to_dict()}')
             del self._coins[key]
 
         for _, coin in self._coins.items():
