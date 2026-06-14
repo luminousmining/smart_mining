@@ -40,11 +40,8 @@ class Reward:
         self.__calc_hash_sec()
 
     def __calc_emission_usd(self) -> None:
-        if self.emission_usd:
-            return
         if not self.emission_coin or not self.usd:
             return
-        
         self.emission_usd = self.emission_coin * self.usd
 
     def __calc_usd_sec(self) -> None:
