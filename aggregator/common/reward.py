@@ -35,8 +35,17 @@ class Reward:
             self.market_cap = other.market_cap if other.market_cap else self.market_cap
 
     def update(self) -> None:
+        self.__calc_emission_usd()
         self.__calc_usd_sec()
         self.__calc_hash_sec()
+
+    def __calc_emission_usd(self) -> None:
+        if self.emission_usd:
+            return
+        if not self.emission_coin or not self.usd:
+            return
+        
+        self.emission_usd = self.emission_coin * self.usd
 
     def __calc_usd_sec(self) -> None:
         if not self.emission_usd:
@@ -50,6 +59,7 @@ class Reward:
             return
         if not self.emission_usd:
             return
+        
         self.hash_usd = self.emission_usd / self.network_hashrate
 
     def to_dict(self) -> dict:

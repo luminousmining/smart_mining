@@ -105,7 +105,8 @@ def workflow_explorer_kaspa(
             logging.debug('Explorer kaspa: coin not in manager yet')
             return
 
-        network_hashrate = hashrate_info.get('hashrate')
+        _hashrate_ghs    = hashrate_info.get('hashrate')
+        network_hashrate = float(_hashrate_ghs) * 1e9 if _hashrate_ghs is not None else None
         difficulty       = blockdag_info.get('difficulty')
         block_height     = blockdag_info.get('virtualDaaScore')
         update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
