@@ -36,21 +36,7 @@ class Coin:
         return data
 
 
-def update_coin_by_hashrate_no(data: dict) -> Coin:
-    #######################################################################
-    coin = Coin()
-
-    #######################################################################
-    coin.name = data['name'].lower()
-    coin.tag = data['ticker'].lower()
-    coin.algorithm = data['algorithm'].lower().replace('-', '')
-
-    #######################################################################
-    if coin.tag.lower() == "nicehash":
-        return None
-    if 'nicehash' in coin.name.lower():
-        return None
-
+def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
     price = data['price']['USD']
     hashrate =  data['network']['hashrate']
@@ -59,55 +45,26 @@ def update_coin_by_hashrate_no(data: dict) -> Coin:
     emissionUSD =  data['network']['emissionUSD']
 
     #######################################################################
-    reward = Reward()
-    reward.usd = float(price) if hashrate else 0
-    reward.network_hashrate = float(hashrate) if hashrate else 0
-    reward.difficulty = float(difficulty) if difficulty else 0
-    reward.emission_coin = float(emission) if emission else 0
-    reward.emission_usd = float(emissionUSD) if emissionUSD else 0
+    coin.reward.usd = float(price) if price else 0
+    coin.reward.network_hashrate = float(hashrate) if hashrate else 0
+    coin.reward.difficulty = float(difficulty) if difficulty else 0
+    coin.reward.emission_coin = float(emission) if emission else 0
+    coin.reward.emission_usd = float(emissionUSD) if emissionUSD else 0
 
+
+def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:
     #######################################################################
-    coin.reward = reward
-
-    #######################################################################
-    return coin
-
-
-def update_coin_by_what_to_mine(name: str, data: dict) -> Coin:
-    #######################################################################
-    coin = Coin()
-
-    #######################################################################
-    coin.name = name
-    coin.tag = data['tag'].lower()
-    coin.algorithm = data['algorithm'].lower().replace('-', '')
-
-    #######################################################################
-    if coin.tag.lower() == "nicehash":
-        return None
-    if 'nicehash' in coin.name.lower():
-        return None
-
-    #######################################################################
-    reward = Reward()
-    reward.difficulty = float(data['difficulty'])
-    reward.network_hashrate = float(data['nethash'])
-    reward.market_cap = float(data['market_cap'].replace('$', '').replace(',', ''))
+    coin.reward.difficulty = float(data['difficulty'])
+    coin.reward.network_hashrate = float(data['nethash'])
+    coin.reward.market_cap = float(data['market_cap'].replace('$', '').replace(',', ''))
 
     #######################################################################
     seconds_by_day = float(86400)
     block_reward = float(data['block_reward'])
     block_time = float(data['block_time'])
-    if block_time > 0:
+    if block_time and block_time > 0.0:
         block_by_day = seconds_by_day / block_time
-        emission_usd = block_by_day * block_reward
-        reward.emission_usd = emission_usd
-
-    #######################################################################
-    coin.reward = reward
-
-    #######################################################################
-    return coin
+        coin.reward.emission_coin = block_by_day * block_reward
 
 
 def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
@@ -121,12 +78,7 @@ def update_coin_by_coingecko(coin: Coin, usd: float) -> None:
     coin.reward.usd = float(usd)
 
 
-def update_coin_by_explorer(
-    coin: Coin,
-    network_hashrate: 'float | None',
-    difficulty: 'float | None',
-    block_height: 'int | None'
-) -> None:
+def update_coin_by_explorer(coin: Coin, network_hashrate: float, difficulty: float, block_height: int) -> None:
     if network_hashrate:
         coin.reward.network_hashrate = float(network_hashrate)
     if difficulty:

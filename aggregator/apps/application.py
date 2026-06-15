@@ -190,7 +190,7 @@ def run_application(config: Config) -> None:
         thmManager.process(HandlerNamespace.MANAGER, 'pool_manager')
         thmManager.process(HandlerNamespace.MANAGER, 'database')
 
-        time.sleep(0.1)
+        time.sleep(1)
 
     # Database disconnect
     if pg.is_connected() is True:

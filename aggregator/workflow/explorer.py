@@ -11,6 +11,7 @@ from api.explorer import (
     ETCExplorerAPI
 )
 from common import (
+    Coin,
     CoinManager,
     ApiHistoryManager,
     update_coin_by_explorer
@@ -47,9 +48,11 @@ def workflow_explorer_ergo(
             return
 
         coin = coin_manager.get_from_tag('erg')
-        if not coin:
-            logging.debug('Explorer ergo: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'erg'
+            coin.tag = 'erg'
+            coin_manager.insert(coin)
 
         network_hashrate = raw.get('networkHashrate')
         difficulty       = raw.get('difficulty')
@@ -101,9 +104,11 @@ def workflow_explorer_kaspa(
             return
 
         coin = coin_manager.get_from_tag('kas')
-        if not coin:
-            logging.debug('Explorer kaspa: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'kas'
+            coin.tag = 'kas'
+            coin_manager.insert(coin)
 
         _hashrate_ghs    = hashrate_info.get('hashrate')
         network_hashrate = float(_hashrate_ghs) * 1e9 if _hashrate_ghs is not None else None
@@ -156,9 +161,11 @@ def workflow_explorer_rvn(
             return
 
         coin = coin_manager.get_from_tag('rvn')
-        if not coin:
-            logging.debug('Explorer rvn: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'rvn'
+            coin.tag = 'rvn'
+            coin_manager.insert(coin)
 
         difficulty   = blockchain_info.get('difficulty')
         block_height = blockchain_info.get('blocks')
@@ -209,9 +216,11 @@ def workflow_explorer_xmr(
 
         data = raw.get('data', {})
         coin = coin_manager.get_from_tag('xmr')
-        if not coin:
-            logging.debug('Explorer xmr: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'xmr'
+            coin.tag = 'xmr'
+            coin_manager.insert(coin)
 
         network_hashrate = data.get('hash_rate')
         difficulty       = data.get('difficulty')
@@ -268,9 +277,11 @@ def workflow_explorer_cfx(
 
         latest = data_list[0]
         coin = coin_manager.get_from_tag('cfx')
-        if not coin:
-            logging.debug('Explorer cfx: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'cfx'
+            coin.tag = 'cfx'
+            coin_manager.insert(coin)
 
         network_hashrate = latest.get('hashRate')
         difficulty       = latest.get('difficulty')
@@ -321,9 +332,11 @@ def workflow_explorer_etc(
             return
 
         coin = coin_manager.get_from_tag('etc')
-        if not coin:
-            logging.debug('Explorer etc: coin not in manager yet')
-            return
+        if coin is None:
+            coin = Coin()
+            coin.name = 'etc'
+            coin.tag = 'etc'
+            coin_manager.insert(coin)
 
         network_hashrate = raw.get('network_hashrate')
         difficulty       = raw.get('difficulty')

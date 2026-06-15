@@ -10,6 +10,7 @@ from api import (
     WhatToMineAPI
 )
 from common import (
+    Coin,
     CoinManager,
     HardwareManager,
     ApiHistoryManager,
@@ -125,12 +126,16 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
         for tag, cg_id in symbol_to_id.items():
             if cg_id not in prices:
                 continue
-            coin = coin_manager.get_from_tag(tag)
-            if not coin:
-                continue
             usd = prices[cg_id].get('usd')
-            if usd:
-                update_coin_by_coingecko(coin, usd)
+            if not usd:
+                continue
+            coin = coin_manager.get_from_tag(tag)
+            if coin is None:
+                coin = Coin()
+                coin.name = tag
+                coin.tag = tag
+                coin_manager.insert(coin)
+            update_coin_by_coingecko(coin, usd)
 
         success = True
 
@@ -169,9 +174,18 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
         coins = api.get_coins()
         if coins:
             for _, value in coins.items():
-                coin = update_coin_by_hashrate_no(value)
-                if coin:
+                tag = value['ticker'].lower()
+                name = value['name'].lower()
+                if tag == 'nicehash' or 'nicehash' in name:
+                    continue
+                coin = coin_manager.get_from_tag(tag)
+                if coin is None:
+                    coin = Coin()
+                    coin.tag = tag
                     coin_manager.insert(coin)
+                coin.name = name
+                coin.algorithm = value['algorithm'].lower().replace('-', '')
+                update_coin_by_hashrate_no(coin, value)
             success = True
         else:
             message = 'API returned empty response'
@@ -214,8 +228,12 @@ def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware
                 continue
             tag = value['coin'].lower()
             coin = coin_manager.get_from_tag(tag)
-            if coin:
-                update_coin_by_minerstat(coin, value)
+            if coin is None:
+                coin = Coin()
+                coin.name = tag
+                coin.tag = tag
+                coin_manager.insert(coin)
+            update_coin_by_minerstat(coin, value)
 
         #######################################################################
         logging.info('🔄 get hardware informations....')
@@ -277,9 +295,18 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
     try:
         coins = api.get_coins()
         for name, value in coins.items():
-            coin = update_coin_by_what_to_mine(name.lower(), value)
-            if coin:
+            tag = value['tag'].lower()
+            name = name.lower()
+            if tag == 'nicehash' or 'nicehash' in name:
+                continue
+            coin = coin_manager.get_from_tag(tag)
+            if coin is None:
+                coin = Coin()
+                coin.tag = tag
                 coin_manager.insert(coin)
+            coin.name = name
+            coin.algorithm = value['algorithm'].lower().replace('-', '')
+            update_coin_by_what_to_mine(coin, value)
 
         success = True
 
