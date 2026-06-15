@@ -39,7 +39,7 @@ class PoolManager:
             for tag, blocks in pool_value.blocks.items():
                 data[pool_name]['blocks'][tag] = []
                 for block in blocks:
-                    data[pool_name]['blocks'][block.tag].append(block.to_dict())
+                    data[pool_name]['blocks'][tag].append(block.to_dict())
 
         #######################################################################
         with open(output_file, 'w') as fd:
