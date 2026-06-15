@@ -73,7 +73,7 @@ class CoinManager:
 
     def update(self) -> None:
         ###########################################################################
-        logging.info('===== COIN MANAGER UPDATE=====')
+        logging.info('===== COIN MANAGER UPDATE =====')
 
         keys_to_remove = list()
 

@@ -14,6 +14,7 @@ from common import (
     CoinManager,
     HardwareManager,
     ApiHistoryManager,
+    update_coin_by_binance,
     update_coin_by_what_to_mine,
     update_coin_by_hashrate_no,
     update_coin_by_minerstat,
@@ -53,10 +54,13 @@ def workflow_coin_binance(config: Config, coin_manager: CoinManager, api_history
                 continue
             if not symbol.endswith('usd'):
                 continue
+            if symbol != (symbol_data['baseAsset'] + 'usd').lower():
+                continue
             filtered.append(symbol_data)
 
         ###########################################################################
         logging.info('🔄 update coins price...')
+        logging.info(f'🔄 filtered symbols: {len(filtered)}')
         for data in filtered:
             symbol = data['symbol']
             tag = data['baseAsset'].lower().replace('usd', '')
@@ -64,10 +68,9 @@ def workflow_coin_binance(config: Config, coin_manager: CoinManager, api_history
             if 'price' not in raw:
                 logging.error(f'❌ missing key "price" -> {raw}')
                 return
-            price = float(raw['price'])
             coin = coin_manager.get_from_tag(tag)
-            if coin and coin.reward:
-                coin.reward.usd = price
+            if coin:
+                update_coin_by_binance(coin, raw)
 
         success = True
 
@@ -130,12 +133,8 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
             if not usd:
                 continue
             coin = coin_manager.get_from_tag(tag)
-            if coin is None:
-                coin = Coin()
-                coin.name = tag
-                coin.tag = tag
-                coin_manager.insert(coin)
-            update_coin_by_coingecko(coin, usd)
+            if coin:
+                update_coin_by_coingecko(coin, usd)
 
         success = True
 
@@ -184,7 +183,6 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
                     coin.tag = tag
                     coin.name = name
                     coin_manager.insert(coin)
-                coin.name = name
                 coin.algorithm = value['algorithm'].lower().replace('-', '')
                 update_coin_by_hashrate_no(coin, value)
             success = True
@@ -229,12 +227,8 @@ def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware
                 continue
             tag = value['coin'].lower()
             coin = coin_manager.get_from_tag(tag)
-            if coin is None:
-                coin = Coin()
-                coin.name = tag
-                coin.tag = tag
-                coin_manager.insert(coin)
-            update_coin_by_minerstat(coin, value)
+            if coin:
+                update_coin_by_minerstat(coin, value)
 
         #######################################################################
         logging.info('🔄 get hardware informations....')

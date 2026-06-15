@@ -36,6 +36,10 @@ class Coin:
         return data
 
 
+def update_coin_by_binance(coin: Coin, data: dict) -> None:
+    price = data['price']
+
+
 def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
     price = data['price']['USD']
