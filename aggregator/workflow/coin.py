@@ -308,6 +308,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
                 coin_manager.insert(coin)
             coin.name = name
             coin.algorithm = value['algorithm'].lower().replace('-', '')
+            coin.reward.market_cap = float(value['market_cap'].replace('$', '').replace(',', ''))
             update_coin_by_what_to_mine(coin, value)
 
         success = True

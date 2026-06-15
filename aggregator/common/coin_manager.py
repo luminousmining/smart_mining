@@ -102,6 +102,7 @@ class CoinManager:
                 logging.warning(f'🔥 Coin rejected [{key}] — {reason}')
 
         # TODO: Many coins need fix
+        logging.warning(f'⚠️ {len(keys_to_remove)} coins rejected!')
         # for key in keys_to_remove:
         #     del self._coins[key]
 
