@@ -20,7 +20,7 @@ class ApiHTTP:
             endpoint = f'{host}{target}'
             response = requests.get(endpoint, headers=self.headers)
             logging.debug(f'🌐 endpoint: [{endpoint}] - [{response.status_code}]')
-            if response.status_code == 409:
+            if response.status_code < 200 and response.status_code >= 300:
                 return {}
             body = response.json()
             return body
