@@ -54,7 +54,7 @@ def get_days(days: int) -> int:
 
 class HandlerNamespace:
 
-    COIN = 'coin'
+    API = 'coin'
     EXPLORER = 'explorer'
     POOL = 'pool'
     MANAGER = 'manager'
@@ -124,15 +124,15 @@ def run_application(config: Config) -> None:
     # Timer Handlers Coins
     thmCoin = TimerHandlerManager()
     if config.apis.hashrate_no:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.API, 'hashrate_no', get_seconds(t.hashrate_no), workflow_coin_hashrate_no, config, coin_manager, api_history_manager)
     if config.apis.what_to_mine:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.API, 'what_to_mine', get_seconds(t.what_to_mine), workflow_coin_what_to_mine, config, coin_manager, api_history_manager)
     if config.apis.minerstat:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.API, 'miner_stat', get_seconds(t.miner_stat_coin), workflow_coin_miner_stat, config, coin_manager, hardware_manager, api_history_manager)
     if config.apis.binance:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.API, 'binance', get_seconds(t.binance), workflow_coin_binance, config, coin_manager, api_history_manager)
     if config.apis.coingecko:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.API, 'coingecko', get_seconds(t.coingecko), workflow_coin_coingecko, config, coin_manager, api_history_manager)
 
     # Timer Handlers Explorers
     if 'erg' in config.apis.explorer:
@@ -166,11 +166,11 @@ def run_application(config: Config) -> None:
 
     while app_is_running():
         # Timer Coins
-        thmCoin.process(HandlerNamespace.COIN, 'hashrate_no')
-        thmCoin.process(HandlerNamespace.COIN, 'what_to_mine')
-        thmCoin.process(HandlerNamespace.COIN, 'miner_stat')
-        thmCoin.process(HandlerNamespace.COIN, 'binance')
-        thmCoin.process(HandlerNamespace.COIN, 'coingecko')
+        thmCoin.process(HandlerNamespace.API, 'hashrate_no')
+        thmCoin.process(HandlerNamespace.API, 'what_to_mine')
+        thmCoin.process(HandlerNamespace.API, 'miner_stat')
+        thmCoin.process(HandlerNamespace.API, 'binance')
+        thmCoin.process(HandlerNamespace.API, 'coingecko')
 
         # Timer Pools
         thmPool.process(HandlerNamespace.POOL, '2miner')
