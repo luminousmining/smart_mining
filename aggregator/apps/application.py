@@ -55,6 +55,7 @@ def get_days(days: int) -> int:
 class HandlerNamespace:
 
     COIN = 'coin'
+    EXPLORER = 'explorer'
     POOL = 'pool'
     MANAGER = 'manager'
 
@@ -135,17 +136,17 @@ def run_application(config: Config) -> None:
 
     # Timer Handlers Explorers
     if 'erg' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_erg', get_seconds(t.explorer_erg), workflow_explorer_ergo, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'erg', get_seconds(t.explorer_erg), workflow_explorer_ergo, config, coin_manager, api_history_manager)
     if 'kas' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_kas', get_seconds(t.explorer_kas), workflow_explorer_kaspa, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'kas', get_seconds(t.explorer_kas), workflow_explorer_kaspa, config, coin_manager, api_history_manager)
     if 'rvn' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_rvn', get_seconds(t.explorer_rvn), workflow_explorer_rvn, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'rvn', get_seconds(t.explorer_rvn), workflow_explorer_rvn, config, coin_manager, api_history_manager)
     if 'xmr' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_xmr', get_seconds(t.explorer_xmr), workflow_explorer_xmr, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'xmr', get_seconds(t.explorer_xmr), workflow_explorer_xmr, config, coin_manager, api_history_manager)
     if 'cfx' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_cfx', get_seconds(t.explorer_cfx), workflow_explorer_cfx, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'cfx', get_seconds(t.explorer_cfx), workflow_explorer_cfx, config, coin_manager, api_history_manager)
     if 'etc' in config.apis.explorer:
-        thmCoin.add_handler(HandlerNamespace.COIN, 'explorer_etc', get_seconds(t.explorer_etc), workflow_explorer_etc, config, coin_manager, api_history_manager)
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'etc', get_seconds(t.explorer_etc), workflow_explorer_etc, config, coin_manager, api_history_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
