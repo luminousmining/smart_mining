@@ -186,8 +186,8 @@ def run_application(config: Config) -> None:
         thmCoin.process(HandlerNamespace.EXPLORER, 'etc')
 
         # Timer Managers
-        thmManager.process(HandlerNamespace.MANAGER, 'coin_manager')
-        thmManager.process(HandlerNamespace.MANAGER, 'pool_manager')
+        thmManager.process(HandlerNamespace.MANAGER, 'coin')
+        thmManager.process(HandlerNamespace.MANAGER, 'pool')
         thmManager.process(HandlerNamespace.MANAGER, 'database')
 
         time.sleep(1)
