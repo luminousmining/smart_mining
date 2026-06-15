@@ -157,6 +157,7 @@ def run_application(config: Config) -> None:
     if config.apis.nanopool:
         thmPool.add_handler(HandlerNamespace.POOL, 'nanopool', get_seconds(t.nanopool), workflow_pool_nanopool, config, pool_manager, api_history_manager)
 
+
     # Timer Handlers Managers
     thmManager = TimerHandlerManager()
     thmManager.add_handler(HandlerNamespace.MANAGER, 'coin', get_seconds(t.coin_manager), workflow_coin_manager, config, coin_manager)
@@ -177,12 +178,12 @@ def run_application(config: Config) -> None:
         thmPool.process(HandlerNamespace.POOL, 'nanopool')
 
         # Timer Explorer
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_erg')
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_kas')
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_rvn')
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_xmr')
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_cfx')
-        thmCoin.process(HandlerNamespace.COIN, 'explorer_etc')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'erg')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'kas')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'rvn')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'xmr')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'cfx')
+        thmCoin.process(HandlerNamespace.EXPLORER, 'etc')
 
         # Timer Managers
         thmManager.process(HandlerNamespace.MANAGER, 'coin_manager')
