@@ -182,6 +182,7 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
                 if coin is None:
                     coin = Coin()
                     coin.tag = tag
+                    coin.name = name
                     coin_manager.insert(coin)
                 coin.name = name
                 coin.algorithm = value['algorithm'].lower().replace('-', '')
@@ -303,6 +304,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
             if coin is None:
                 coin = Coin()
                 coin.tag = tag
+                coin.name = name
                 coin_manager.insert(coin)
             coin.name = name
             coin.algorithm = value['algorithm'].lower().replace('-', '')

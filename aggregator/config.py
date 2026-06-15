@@ -103,7 +103,7 @@ class Config:
             mining_obj = data.get('mining', {})
             self.apis.hashrate_no = ConfigAPI(mining_obj['hashrate_no']) if 'hashrate_no' in mining_obj else None
             self.apis.what_to_mine = ConfigAPI(mining_obj['whattomine']) if 'whattomine' in mining_obj else None
-            self.apis.minerstat = ConfigAPI(mining_obj['minerstat']) if 'minerstat' in mining_obj else None
+            self.apis.minerstat = ConfigAPI(mining_obj['miner_stat']) if 'miner_stat' in mining_obj else None
 
             pool_obj = data.get('pool', {})
             self.apis.two_miners = ConfigAPI(pool_obj['2miners']) if '2miners' in pool_obj else None

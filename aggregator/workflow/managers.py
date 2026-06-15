@@ -19,6 +19,7 @@ def workflow_pool_manager(config: Config, pool_manager: PoolManager) -> None:
         return
 
     pool_manager.update()
+    pool_manager.dump(config.folder_output)
 
 
 def workflow_coin_manager(config: Config, coin_manager: CoinManager) -> None:
@@ -30,6 +31,7 @@ def workflow_coin_manager(config: Config, coin_manager: CoinManager) -> None:
         return
 
     coin_manager.update()
+    coin_manager.dump(config.folder_output)
 
 
 def workflow_database_manager(config: Config, pg: PostgreSQL, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager, api_history_manager: ApiHistoryManager) -> None:

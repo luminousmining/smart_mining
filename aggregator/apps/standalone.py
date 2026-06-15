@@ -102,5 +102,5 @@ def run_standalone(config: Config) -> None:
         pg.update(coin_manager, pool_manager, hadrware_manager, api_history_manager)
 
     # Close database connection
-    if pg.is_connected() is True:
+    if config.db.update and pg.is_connected() is True:
             pg.disconnect()

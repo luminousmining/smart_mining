@@ -19,7 +19,7 @@ class CoinManager:
 
     def dump(self, folder_output: str) -> None:
         ###########################################################################
-        logging.info('===== COIN MANAGER =====')
+        logging.info('===== COIN MANAGER DUMP =====')
 
         #######################################################################
         start_time = time.time()
@@ -72,16 +72,23 @@ class CoinManager:
         return None
 
     def update(self) -> None:
+        ###########################################################################
+        logging.info('===== COIN MANAGER UPDATE=====')
+
         keys_to_remove = list()
 
         for key, coin in self._coins.items():
+            if not key or not coin:
+                logging.warning(f'⚠️ Coin invalide [{coin.name if coin else "Unknown"}]')
+                continue
+
             reward = coin.reward
             reward.update()
 
             for attr in ('usd', 'network_hashrate', 'difficulty'):
                 val = getattr(reward, attr)
                 if _is_nan_or_negative(val):
-                    logging.warning(f'⚠️ {key}: {attr}={val} invalide, remis à None')
+                    logging.warning(f'⚠️ {key}: {attr}={val} invalide, set to None')
                     setattr(reward, attr, None)
 
             reason = None
@@ -92,10 +99,11 @@ class CoinManager:
 
             if reason:
                 keys_to_remove.append(key)
-                logging.warning(f'🔥 Coin rejeté [{key}] — {reason}')
+                logging.warning(f'🔥 Coin rejected [{key}] — {reason}')
 
-        for key in keys_to_remove:
-            del self._coins[key]
+        # TODO: Many coins need fix
+        # for key in keys_to_remove:
+        #     del self._coins[key]
 
         for _, coin in self._coins.items():
             if coin.algorithm not in self._algorithms:
