@@ -29,7 +29,7 @@ class BinanceAPI(ApiHTTP):
         output_file = self.dump_file_symbols
 
         if self.use_api:
-            symbols = self.get('api/v3/exchangeInfo')['symbols']
+            symbols = self.get('exchangeInfo')['symbols']
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(symbols, fd, indent=4)
@@ -43,7 +43,7 @@ class BinanceAPI(ApiHTTP):
         output_file = os.path.join(self.path_dump_price, f'{symbol}.json')
 
         if self.use_api:
-            price = self.get(f'api/v3/ticker/price?symbol={symbol}')
+            price = self.get(f'ticker/price?symbol={symbol}')
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(price, fd, indent=4)
@@ -56,7 +56,7 @@ class BinanceAPI(ApiHTTP):
         output_file = os.path.join(self.path_dump_avg_price, f'{symbol}.json')
 
         if self.use_api:
-            avg_price = self.get(f'api/v3/avgPrice?symbol={symbol}')
+            avg_price = self.get(f'avgPrice?symbol={symbol}')
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(avg_price, fd, indent=4)

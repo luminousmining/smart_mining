@@ -6,10 +6,23 @@ Cryptocurrency mining profitability aggregator. Fetches data from 7 external API
 
 ```
 External APIs
-  ├── Market:   Binance, CoinGecko
-  ├── Mining:   Hashrate.no, WhatToMine, MinerStat
-  ├── Pool:     2Miners, Nanopool
-  └── Explorer: Ergo, Kaspa, Ravencoin, Monero, Conflux, Ethereum Classic
+  ├── Market
+  │     ├── Binance
+  │     └── CoinGecko
+  ├── Mining
+  │     ├── Hashrate.no
+  │     ├── WhatToMine
+  │     └── MinerStat
+  ├── Pool
+  │     ├── 2Miners
+  │     └── Nanopool
+  └── Explorer
+        ├── Ergo
+        ├── Kaspa
+        ├── Ravencoin
+        ├── Monero
+        ├── Conflux
+        └── Ethereum Classic
         ↓
   api/  →  workflow/  →  common/ (managers)  →  dataset/ JSON  →  PostgreSQL (optional)
 ```
@@ -28,6 +41,28 @@ External APIs
 
 - **Standalone** — runs the full pipeline once sequentially, exports JSON, optionally syncs DB, then exits. Best for cron/batch use.
 - **Application** — infinite loop (100 ms sleep) where each workflow fires on its own timer (1–120 s intervals).
+
+## API Sources
+
+Endpoints are configured in `config.json` (see `config.json.example`). Sources with an `api_key` field require a key.
+
+| Category | API | Endpoint | API Key |
+| :--- | :--- | :--- | :---: |
+| Market | Binance | `https://api.binance.com` | No |
+| Market | CoinGecko | `https://api.coingecko.com/api/v3` | **Yes** |
+| Mining | Hashrate.no | `https://api.hashrate.no/api/v2` | **Yes** |
+| Mining | WhatToMine | `https://whattomine.com` | No |
+| Mining | MinerStat | `https://api.minerstat.com` | **Yes** |
+| Pool | 2Miners | `https://<TAG>.2miners.com/api` | No |
+| Pool | Nanopool | `https://api.nanopool.org/v1` | No |
+| Explorer | Ergo (erg) | `https://api.ergoplatform.com` | No |
+| Explorer | Kaspa (kas) | `https://api.kaspa.org` | No |
+| Explorer | Ravencoin (rvn) | `https://rvn-rpc-mainnet.ting.finance/rpc` | No¹ |
+| Explorer | Monero (xmr) | `https://xmrchain.net` | No |
+| Explorer | Conflux (cfx) | `https://api.confluxscan.io` | No |
+| Explorer | Ethereum Classic (etc) | `https://etc.blockscout.com` | No |
+
+¹ Ravencoin uses basic RPC authentication (`rpc_user` / `rpc_password`, default `anonymous`), not an API key.
 
 ## Installation
 
@@ -72,32 +107,97 @@ Logs are written to both the console and `aggregator.log`.
   },
 
   "market": {
-    "binance":   { "use_api": true, "host": "https://api.binance.com" },
-    "coingecko": { "use_api": true, "api_key": "YOUR_KEY", "host": "..." }
+    "binance": {
+      "use_api": true,
+      "host": "https://api.binance.com"
+    },
+    "coingecko": {
+      "use_api": true,
+      "api_key": "YOUR_KEY",
+      "host": "https://api.coingecko.com/api/v3"
+    }
   },
 
   "mining": {
-    "hashrate_no": { ... },
-    "whattomine":  { ... },
-    "minerstat":   { ... }
+    "hashrate_no": {
+      "use_api": true,
+      "api_key": "YOUR_KEY",
+      "host": "https://api.hashrate.no/api/v2"
+    },
+    "whattomine": {
+      "use_api": true,
+      "host": "https://whattomine.com"
+    },
+    "minerstat": {
+      "use_api": true,
+      "api_key": "YOUR_KEY",
+      "host": "https://api.minerstat.com"
+    }
   },
 
   "pool": {
-    "2miners":  { ... },
-    "nanopool": { ... }
+    "2miners": {
+      "use_api": true,
+      "host": "https://<TAG>.2miners.com/api"
+    },
+    "nanopool": {
+      "use_api": true,
+      "host": "https://api.nanopool.org/v1"
+    }
   },
 
   "explorer": {
-    "erg": { ... }, "kas": { ... }, "rvn": { ... },
-    "xmr": { ... }, "cfx": { ... }, "etc": { ... }
+    "erg": {
+      "use_api": true,
+      "host": "https://api.ergoplatform.com"
+    },
+    "kas": {
+      "use_api": true,
+      "host": "https://api.kaspa.org"
+    },
+    "rvn": {
+      "use_api": true,
+      "host": "https://rvn-rpc-mainnet.ting.finance/rpc",
+      "rpc_user": "anonymous",
+      "rpc_password": "anonymous"
+    },
+    "xmr": {
+      "use_api": true,
+      "host": "https://xmrchain.net"
+    },
+    "cfx": {
+      "use_api": true,
+      "host": "https://api.confluxscan.io"
+    },
+    "etc": {
+      "use_api": true,
+      "host": "https://etc.blockscout.com"
+    }
   },
 
   "timers": {
     // Refresh interval in seconds for each source (application mode only)
-    "market":   { "binance": 8,  "coingecko": 20 },
-    "mining":   { "hashrate_no": 5, "whattomine": 10, "minerstat": 10 },
-    "pool":     { "2miners": 5, "nanopool": 5 },
-    "explorer": { "erg": 5, "kas": 5, "rvn": 5, "xmr": 5, "cfx": 5, "etc": 5 }
+    "market": {
+      "binance": 8,
+      "coingecko": 20
+    },
+    "mining": {
+      "hashrate_no": 5,
+      "whattomine": 10,
+      "minerstat": 10
+    },
+    "pool": {
+      "2miners": 5,
+      "nanopool": 5
+    },
+    "explorer": {
+      "erg": 5,
+      "kas": 5,
+      "rvn": 5,
+      "xmr": 5,
+      "cfx": 5,
+      "etc": 5
+    }
   }
 }
 ```
