@@ -1,6 +1,11 @@
 from workflow.coin import (
     workflow_coin_binance,
     workflow_coin_coingecko,
+    workflow_coin_coinpaprika,
+    workflow_coin_coinmarketcap,
+    workflow_coin_coincap,
+    workflow_coin_messari,
+    workflow_coin_cryptocompare,
     workflow_coin_hashrate_no,
     workflow_coin_miner_stat,
     workflow_coin_what_to_mine

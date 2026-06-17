@@ -46,23 +46,47 @@ External APIs
 
 Endpoints are configured in `config.json` (see `config.json.example`). Sources with an `api_key` field require a key.
 
-| Category | API | Endpoint | API Key |
-| :--- | :--- | :--- | :---: |
-| Market | Binance | `https://api.binance.com` | No |
-| Market | CoinGecko | `https://api.coingecko.com/api/v3` | **Yes** |
-| Mining | Hashrate.no | `https://api.hashrate.no/api/v2` | **Yes** |
-| Mining | WhatToMine | `https://whattomine.com` | No |
-| Mining | MinerStat | `https://api.minerstat.com` | **Yes** |
-| Pool | 2Miners | `https://<TAG>.2miners.com/api` | No |
-| Pool | Nanopool | `https://api.nanopool.org/v1` | No |
-| Explorer | Ergo (erg) | `https://api.ergoplatform.com` | No |
-| Explorer | Kaspa (kas) | `https://api.kaspa.org` | No |
-| Explorer | Ravencoin (rvn) | `https://rvn-rpc-mainnet.ting.finance/rpc` | No¹ |
-| Explorer | Monero (xmr) | `https://xmrchain.net` | No |
-| Explorer | Conflux (cfx) | `https://api.confluxscan.io` | No |
-| Explorer | Ethereum Classic (etc) | `https://etc.blockscout.com` | No |
+### Market
+
+| API | Endpoint | API Key | Rate Limit (free) |
+| :--- | :--- | :---: | :--- |
+| Binance | `https://api.binance.com` | No | ~1,200 weight/min per IP |
+| CoinGecko | `https://api.coingecko.com/api/v3` | **Yes** | 30/min · 10k/month |
+| Coinpaprika | `https://api.coinpaprika.com` | No | 10/s · 20k/month |
+| CoinMarketCap | `https://pro-api.coinmarketcap.com/v1` | **Yes** | 30/min · 10k credits/month |
+| CoinCap | `https://rest.coincap.io` | **Yes** | 100 free credits (prepaid) |
+| Messari | `https://data.messari.io/api/v1` | **Yes** | 30/min · 2k/day |
+| CryptoCompare | `https://min-api.cryptocompare.com` | **Yes** | ~100k/month |
+
+### Mining
+
+| API | Endpoint | API Key | Rate Limit (free) |
+| :--- | :--- | :---: | :--- |
+| Hashrate.no | `https://api.hashrate.no/api/v2` | **Yes** | Not specified |
+| WhatToMine | `https://whattomine.com` | No | Not specified |
+| MinerStat | `https://api.minerstat.com` | **Yes** | Not specified |
+
+### Pool
+
+| API | Endpoint | API Key | Rate Limit (free) |
+| :--- | :--- | :---: | :--- |
+| 2Miners | `https://<TAG>.2miners.com/api` | No | Not specified |
+| Nanopool | `https://api.nanopool.org/v1` | No | Not specified |
+
+### Explorer
+
+| API | Endpoint | API Key | Rate Limit (free) |
+| :--- | :--- | :---: | :--- |
+| Ergo (erg) | `https://api.ergoplatform.com` | No | Not specified |
+| Kaspa (kas) | `https://api.kaspa.org` | No | Not specified |
+| Ravencoin (rvn) | `https://rvn-rpc-mainnet.ting.finance/rpc` | No¹ | Not specified |
+| Monero (xmr) | `https://xmrchain.net` | No | Not specified |
+| Conflux (cfx) | `https://api.confluxscan.io` | No | Not specified |
+| Ethereum Classic (etc) | `https://etc.blockscout.com` | No | Not specified |
 
 ¹ Ravencoin uses basic RPC authentication (`rpc_user` / `rpc_password`, default `anonymous`), not an API key.
+
+² *Rate Limit (free)* reflects the **free / free-API-key** mode only (paid tiers are not listed). "Not specified" means the provider publishes no documented free-tier limit.
 
 ## Installation
 

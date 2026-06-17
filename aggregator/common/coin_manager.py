@@ -71,6 +71,9 @@ class CoinManager:
                 return coin
         return None
 
+    def get_all(self) -> list:
+        return list(self._coins.values())
+
     def update(self) -> None:
         ###########################################################################
         logging.info('===== COIN MANAGER UPDATE =====')

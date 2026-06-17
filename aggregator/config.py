@@ -24,6 +24,11 @@ class ConfigAPIS:
         self.binance = None
         self.minerstat = None
         self.coingecko = None
+        self.coinpaprika = None
+        self.coinmarketcap = None
+        self.coincap = None
+        self.messari = None
+        self.cryptocompare = None
         self.two_miners = None
         self.nanopool = None
         self.explorer: dict = {}
@@ -46,6 +51,11 @@ class ConfigTimers:
         market = data.get('market', {})
         self.binance = market.get('binance', 8)
         self.coingecko = market.get('coingecko', 20)
+        self.coinpaprika = market.get('coinpaprika', 60)
+        self.coinmarketcap = market.get('coinmarketcap', 120)
+        self.coincap = market.get('coincap', 60)
+        self.messari = market.get('messari', 60)
+        self.cryptocompare = market.get('cryptocompare', 60)
 
         mining = data.get('mining', {})
         self.hashrate_no = mining.get('hashrate_no', 3)
@@ -99,6 +109,11 @@ class Config:
             market_obj = data.get('market', {})
             self.apis.binance = ConfigAPI(market_obj['binance']) if 'binance' in market_obj else None
             self.apis.coingecko = ConfigAPI(market_obj['coingecko']) if 'coingecko' in market_obj else None
+            self.apis.coinpaprika = ConfigAPI(market_obj['coinpaprika']) if 'coinpaprika' in market_obj else None
+            self.apis.coinmarketcap = ConfigAPI(market_obj['coinmarketcap']) if 'coinmarketcap' in market_obj else None
+            self.apis.coincap = ConfigAPI(market_obj['coincap']) if 'coincap' in market_obj else None
+            self.apis.messari = ConfigAPI(market_obj['messari']) if 'messari' in market_obj else None
+            self.apis.cryptocompare = ConfigAPI(market_obj['cryptocompare']) if 'cryptocompare' in market_obj else None
 
             mining_obj = data.get('mining', {})
             self.apis.hashrate_no = ConfigAPI(mining_obj['hashrate_no']) if 'hashrate_no' in mining_obj else None

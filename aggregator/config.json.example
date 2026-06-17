@@ -21,6 +21,35 @@
             "use_api": true,
             "api_key": "YOUR_API_KEY",
             "host": "https://api.coingecko.com/api/v3"
+        },
+        "coinpaprika":
+        {
+            "use_api": true,
+            "host": "https://api.coinpaprika.com"
+        },
+        "coinmarketcap":
+        {
+            "use_api": true,
+            "api_key": "YOUR_API_KEY",
+            "host": "https://pro-api.coinmarketcap.com/v1"
+        },
+        "coincap":
+        {
+            "use_api": true,
+            "api_key": "YOUR_API_KEY",
+            "host": "https://rest.coincap.io/v3"
+        },
+        "messari":
+        {
+            "use_api": true,
+            "api_key": "YOUR_API_KEY",
+            "host": "https://data.messari.io/api/v1"
+        },
+        "cryptocompare":
+        {
+            "use_api": true,
+            "api_key": "YOUR_API_KEY",
+            "host": "https://min-api.cryptocompare.com"
         }
     },
     "mining":
@@ -70,7 +99,12 @@
         "market":
         {
             "binance": 8,
-            "coingecko": 20
+            "coingecko": 20,
+            "coinpaprika": 60,
+            "coinmarketcap": 120,
+            "coincap": 60,
+            "messari": 60,
+            "cryptocompare": 60
         },
         "mining":
         {

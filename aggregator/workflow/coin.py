@@ -5,6 +5,11 @@ from config import Config
 from api import (
     BinanceAPI,
     CoinGeckoAPI,
+    CoinPaprikaAPI,
+    CoinMarketCapAPI,
+    CoinCapAPI,
+    MessariAPI,
+    CryptoCompareAPI,
     HashrateNoAPI,
     MinerStatAPI,
     WhatToMineAPI
@@ -317,3 +322,270 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
         duration = time.time() - start_time
         logging.info(f'🕐 synchro in {duration:.2f} seconds')
         api_history_manager.add('what_to_mine', success, int(duration * 1000), message)
+
+
+def workflow_coin_coinpaprika(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
+    logging.info('===== WORKFLOW COINPAPRIKA COIN =====')
+
+    ###########################################################################
+    if not config.apis.coinpaprika:
+        logging.info('🚮 Skipped!')
+        return
+
+    ###########################################################################
+    start_time = time.time()
+    success = False
+    message = ''
+
+    ###########################################################################
+    api = CoinPaprikaAPI(config.apis.coinpaprika, config.folder_output)
+
+    ###########################################################################
+    try:
+        logging.info('🔄 get tickers...')
+        tickers = api.get_tickers()
+
+        logging.info('🔄 collecting market data...')
+        for entry in tickers:
+            symbol = entry['symbol'].lower()
+
+            coin = coin_manager.get_from_tag(symbol)
+            if coin is None:
+                # skip coin so many coins are not in our list
+                continue
+
+            quotes = entry['quotes']['USD']
+            usd = quotes['price']
+            market_cap = quotes['market_cap']
+
+            coin.reward.market_cap = market_cap
+            coin.reward.usd = usd
+
+        success = True
+
+    ###########################################################################
+    except Exception as err:
+        message = str(err)
+        logging.error(f'❌ {err}')
+
+    ###########################################################################
+    finally:
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
+        api_history_manager.add('coinpaprika', success, int(duration * 1000), message)
+
+
+def workflow_coin_coinmarketcap(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
+    logging.info('===== WORKFLOW COINMARKETCAP COIN =====')
+
+    ###########################################################################
+    if not config.apis.coinmarketcap:
+        logging.info('🚮 Skipped!')
+        return
+
+    ###########################################################################
+    start_time = time.time()
+    success = False
+    message = ''
+
+    ###########################################################################
+    api = CoinMarketCapAPI(config.apis.coinmarketcap, config.folder_output)
+
+    ###########################################################################
+    try:
+        logging.info('🔄 get listings...')
+        listings = api.get_listings()
+
+        logging.info('🔄 collecting market data...')
+        for entry in listings['data']:
+            symbol = entry['symbol'].lower()
+
+            coin = coin_manager.get_from_tag(symbol)
+            if coin is None:
+                # skip coin so many coins are not in our list
+                continue
+
+            quote = entry['quote']['USD']
+            usd = quote['price']
+            market_cap = quote['market_cap']
+
+            coin.reward.market_cap = market_cap
+            coin.reward.usd = usd
+
+        success = True
+
+    ###########################################################################
+    except Exception as err:
+        message = str(err)
+        logging.error(f'❌ {err}')
+
+    ###########################################################################
+    finally:
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
+        api_history_manager.add('coinmarketcap', success, int(duration * 1000), message)
+
+
+def workflow_coin_coincap(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
+    logging.info('===== WORKFLOW COINCAP COIN =====')
+
+    ###########################################################################
+    if not config.apis.coincap:
+        logging.info('🚮 Skipped!')
+        return
+
+    ###########################################################################
+    start_time = time.time()
+    success = False
+    message = ''
+
+    ###########################################################################
+    api = CoinCapAPI(config.apis.coincap, config.folder_output)
+
+    ###########################################################################
+    try:
+        logging.info('🔄 get assets...')
+        assets = api.get_assets()
+
+        logging.info('🔄 collecting market data...')
+        for entry in assets['data']:
+            symbol = entry['symbol'].lower()
+
+            coin = coin_manager.get_from_tag(symbol)
+            if coin is None:
+                # skip coin so many coins are not in our list
+                continue
+
+            # CoinCap returns numbers as strings, and market cap may be null
+            usd = entry['priceUsd']
+            market_cap = entry['marketCapUsd']
+
+            if usd:
+                coin.reward.usd = float(usd)
+            if market_cap:
+                coin.reward.market_cap = float(market_cap)
+
+        success = True
+
+    ###########################################################################
+    except Exception as err:
+        message = str(err)
+        logging.error(f'❌ {err}')
+
+    ###########################################################################
+    finally:
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
+        api_history_manager.add('coincap', success, int(duration * 1000), message)
+
+
+def workflow_coin_messari(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
+    logging.info('===== WORKFLOW MESSARI COIN =====')
+
+    ###########################################################################
+    if not config.apis.messari:
+        logging.info('🚮 Skipped!')
+        return
+
+    ###########################################################################
+    start_time = time.time()
+    success = False
+    message = ''
+
+    ###########################################################################
+    api = MessariAPI(config.apis.messari, config.folder_output)
+
+    ###########################################################################
+    try:
+        logging.info('🔄 get assets...')
+        assets = api.get_assets()
+
+        logging.info('🔄 collecting market data...')
+        for entry in assets['data']:
+            symbol = entry['symbol'].lower()
+
+            coin = coin_manager.get_from_tag(symbol)
+            if coin is None:
+                # skip coin so many coins are not in our list
+                continue
+
+            metrics = entry['metrics']
+            usd = metrics['market_data']['price_usd']
+            market_cap = metrics['marketcap']['current_marketcap_usd']
+
+            if usd:
+                coin.reward.usd = float(usd)
+            if market_cap:
+                coin.reward.market_cap = float(market_cap)
+
+        success = True
+
+    ###########################################################################
+    except Exception as err:
+        message = str(err)
+        logging.error(f'❌ {err}')
+
+    ###########################################################################
+    finally:
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
+        api_history_manager.add('messari', success, int(duration * 1000), message)
+
+
+def workflow_coin_cryptocompare(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
+    logging.info('===== WORKFLOW CRYPTOCOMPARE COIN =====')
+
+    ###########################################################################
+    if not config.apis.cryptocompare:
+        logging.info('🚮 Skipped!')
+        return
+
+    ###########################################################################
+    start_time = time.time()
+    success = False
+    message = ''
+
+    ###########################################################################
+    api = CryptoCompareAPI(config.apis.cryptocompare, config.folder_output)
+
+    ###########################################################################
+    try:
+        # CryptoCompare expects an explicit symbol list, so only request the
+        # coins we already track (and cap the batch to keep the URL sane).
+        logging.info('🔄 collect coins to enrich...')
+        tags = [coin.tag.upper() for coin in coin_manager.get_all() if coin.tag]
+        tags = tags[:300]
+        if not tags:
+            success = True
+            return
+
+        logging.info('🔄 get prices...')
+        prices = api.get_prices(','.join(tags))
+
+        logging.info('🔄 collecting market data...')
+        for symbol, quotes in prices['RAW'].items():
+            symbol = symbol.lower()
+
+            coin = coin_manager.get_from_tag(symbol)
+            if coin is None:
+                # skip coin so many coins are not in our list
+                continue
+
+            usd = quotes['USD']['PRICE']
+            market_cap = quotes['USD']['MKTCAP']
+
+            coin.reward.market_cap = market_cap
+            coin.reward.usd = usd
+
+        success = True
+
+    ###########################################################################
+    except Exception as err:
+        message = str(err)
+        logging.error(f'❌ {err}')
+
+    ###########################################################################
+    finally:
+        duration = time.time() - start_time
+        logging.info(f'🕐 synchro in {duration:.2f} seconds')
+        api_history_manager.add('cryptocompare', success, int(duration * 1000), message)
