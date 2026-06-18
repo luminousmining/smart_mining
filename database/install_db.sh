@@ -13,4 +13,5 @@ psql\
  -f coins.sql\
  -f hardware.sql\
  -f pool.sql\
- -f profile.sql
+ -f profile.sql\
+ -f api_history.sql

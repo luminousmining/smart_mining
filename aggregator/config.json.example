@@ -25,7 +25,7 @@
         "coinpaprika":
         {
             "use_api": true,
-            "host": "https://api.coinpaprika.com"
+            "host": "https://api.coinpaprika.com/v1"
         },
         "coinmarketcap":
         {

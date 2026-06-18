@@ -104,7 +104,7 @@ class TimerHandlerManager:
             return
 
         if __handler.is_time():
-            logging.info(f'Running: [{namespace}] - {name}')
+            logging.debug(f'Running: [{namespace}] - {name}')
             __handler.run()
 
 
