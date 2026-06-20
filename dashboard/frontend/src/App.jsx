@@ -4,20 +4,24 @@ import CoinsPage from './pages/CoinsPage';
 import CoinHistoryPage from './pages/CoinHistoryPage';
 import MixedHistoryPage from './pages/MixedHistoryPage';
 import HardwarePage from './pages/HardwarePage';
-import PoolsPage from './pages/PoolsPage';
 import PoolComparePage from './pages/PoolComparePage';
 import PoolHistoryPage from './pages/PoolHistoryPage';
 import ApiHistoryPage from './pages/ApiHistoryPage';
+import GlobalPoolsPage from './pages/GlobalPoolsPage';
+import GlobalApiPage from './pages/GlobalApiPage';
+import ProfileInternalPage from './pages/ProfileInternalPage';
 
 const PAGES = {
-  coins:        CoinsPage,
-  history:      CoinHistoryPage,
-  mixed:        MixedHistoryPage,
-  hardware:     HardwarePage,
-  pools:        PoolsPage,
-  poolhistory:  PoolHistoryPage,
-  poolcompare:  PoolComparePage,
-  apihistory:   ApiHistoryPage,
+  'global-coins':      CoinsPage,
+  'global-pools':      GlobalPoolsPage,
+  'global-api':        GlobalApiPage,
+  'global-hardware':   HardwarePage,
+  'history-coin':      CoinHistoryPage,
+  'history-pools':     PoolHistoryPage,
+  'history-api':       ApiHistoryPage,
+  'finance-coins':     MixedHistoryPage,
+  'finance-pools':     PoolComparePage,
+  'profile-internal':  ProfileInternalPage,
 };
 
 const REFRESH_OPTIONS = [
@@ -28,7 +32,7 @@ const REFRESH_OPTIONS = [
 ];
 
 export default function App() {
-  const [page, setPage]               = useState('coins');
+  const [page, setPage]               = useState('global-coins');
   const [params, setParams]           = useState({});
   const [refreshInterval, setRefresh] = useState(30_000);
   const [isMobile, setIsMobile]       = useState(window.innerWidth < 768);

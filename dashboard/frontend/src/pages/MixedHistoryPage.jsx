@@ -73,7 +73,7 @@ const CustomTooltip = ({ active, payload, label, metricFmt, normalize }) => {
 const today        = new Date().toISOString().split('T')[0];
 const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
 
-export default function MixedHistoryPage({ refreshInterval = 30_000 }) {
+export default function MixedHistoryPage() {
   const [allCoins, setAllCoins]   = useState([]);
   const [selected, setSelected]   = useState([]);
   const [dateFrom, setDateFrom]   = useState(sevenDaysAgo);
@@ -100,11 +100,6 @@ export default function MixedHistoryPage({ refreshInterval = 30_000 }) {
   }, [selected, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    if (!selected.length) return;
-    const id = setInterval(load, refreshInterval ?? 30_000);
-    return () => clearInterval(id);
-  }, [load, selected]);
 
   const metricDef  = METRICS.find((m) => m.key === metric) ?? METRICS[0];
   const chartData  = useMemo(
@@ -124,7 +119,7 @@ export default function MixedHistoryPage({ refreshInterval = 30_000 }) {
 
   return (
     <div>
-      <PageHeader title="Compare Coins" subtitle="Multi-coin overlay · refresh 30s" />
+      <PageHeader title="Compare Coins" subtitle="Multi-coin overlay" />
 
       <div style={s.layout}>
         {/* ── Left: coin selector ── */}
@@ -177,6 +172,7 @@ export default function MixedHistoryPage({ refreshInterval = 30_000 }) {
             >
               % Change
             </button>
+            <button onClick={load} style={s.normBtn} disabled={loading} title="Refresh">↺</button>
           </div>
 
           {/* Chart card */}

@@ -59,7 +59,7 @@ const COLUMNS = [
   },
 ];
 
-export default function HardwarePage({ refreshInterval = 30_000 }) {
+export default function HardwarePage() {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -74,13 +74,9 @@ export default function HardwarePage({ refreshInterval = 30_000 }) {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, refreshInterval ?? 30_000);
-    return () => clearInterval(id);
-  }, [load]);
+  useEffect(() => { load(); }, [load]);
 
-  const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()} · refresh 30s` : 'Loading…';
+  const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()}` : 'Loading…';
 
   return (
     <div>

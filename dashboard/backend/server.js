@@ -183,6 +183,21 @@ app.get('/api/pool-tags', async (_req, res) => {
   }
 });
 
+// Last activity per pool (for ON/OFF status)
+app.get('/api/pool-status', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT name, tag, MAX(mine_timestamp) AS last_seen
+      FROM pool_stats
+      GROUP BY name, tag
+      ORDER BY name, tag
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── API History ───────────────────────────────────────────────────────────────
 
 app.get('/api/api-history', async (req, res) => {
@@ -212,6 +227,46 @@ app.get('/api/api-history-names', async (_req, res) => {
   try {
     const result = await pool.query('SELECT DISTINCT api_name FROM api_history ORDER BY api_name');
     res.json(result.rows.map(r => r.api_name));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Last success/failure + 24h counters per API name
+app.get('/api/api-status', async (_req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        api_name,
+        MAX(called_at) FILTER (WHERE success = true)  AS last_success,
+        MAX(called_at) FILTER (WHERE success = false) AS last_failure,
+        COUNT(*) FILTER (WHERE success = true  AND called_at > NOW() - INTERVAL '24h') AS success_24h,
+        COUNT(*) FILTER (WHERE success = false AND called_at > NOW() - INTERVAL '24h') AS fail_24h
+      FROM api_history
+      GROUP BY api_name
+      ORDER BY api_name
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Profile rankings
+const PROFILE_QUERIES = {
+  emission:         `SELECT * FROM profile_emission_usd()`,
+  hash_usd:         `SELECT * FROM profile_hash_usd()`,
+  usd_sec:          `SELECT name, tag, usd_sec FROM coins WHERE usd_sec IS NOT NULL ORDER BY usd_sec DESC`,
+  market_cap:       `SELECT name, tag, market_cap FROM coins WHERE market_cap IS NOT NULL ORDER BY market_cap DESC`,
+  network_hashrate: `SELECT name, tag, network_hashrate FROM coins WHERE network_hashrate IS NOT NULL ORDER BY network_hashrate DESC`,
+};
+
+app.get('/api/profile/:type', async (req, res) => {
+  const query = PROFILE_QUERIES[req.params.type];
+  if (!query) return res.status(400).json({ error: 'Unknown profile type' });
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

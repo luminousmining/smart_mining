@@ -175,7 +175,7 @@ function DifficultyChart({ data }) {
 const today        = new Date().toISOString().split('T')[0];
 const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
 
-export default function PoolHistoryPage({ params = {}, refreshInterval = 30_000 }) {
+export default function PoolHistoryPage({ params = {} }) {
   const [poolNames, setPoolNames] = useState([]);
   const [tags, setTags]           = useState([]);
   const [selectedPool, setPool]   = useState(params.pool ?? '');
@@ -217,11 +217,6 @@ export default function PoolHistoryPage({ params = {}, refreshInterval = 30_000 
   }, [selectedPool, tagFilter, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    if (!selectedPool || !tagFilter) return;
-    const id = setInterval(load, refreshInterval ?? 30_000);
-    return () => clearInterval(id);
-  }, [load, selectedPool, tagFilter]);
 
   const filteredData = useMemo(
     () => statusFilter ? data.filter((r) => r.block_status === statusFilter) : data,
@@ -242,7 +237,7 @@ export default function PoolHistoryPage({ params = {}, refreshInterval = 30_000 
     };
   }, [data]);
 
-  const sub = !tagFilter ? 'Select a coin to begin' : selectedPool ? `${selectedPool} · ${tagFilter} · ${filteredData.length} blocks · refresh 30s` : 'Select a pool';
+  const sub = !tagFilter ? 'Select a coin to begin' : selectedPool ? `${selectedPool} · ${tagFilter} · ${filteredData.length} blocks` : 'Select a pool';
 
   return (
     <div>
@@ -269,6 +264,7 @@ export default function PoolHistoryPage({ params = {}, refreshInterval = 30_000 
             <input type="date" style={s.dateInput} value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} />
             <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
             <input type="date" style={s.dateInput} value={dateTo} min={dateFrom} max={today} onChange={(e) => setDateTo(e.target.value)} />
+            <button onClick={load} style={s.refreshBtn} disabled={loading} title="Refresh">↺</button>
           </div>
         }
       />
@@ -353,4 +349,9 @@ const s = {
   chartHeader: { display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 },
   chartTitle:  { fontSize: 11, fontWeight: 600, color: '#6b6d8a', textTransform: 'uppercase', letterSpacing: '0.7px' },
   chartSub:    { fontSize: 11, color: '#3a3c55' },
+  refreshBtn: {
+    padding: '5px 10px', borderRadius: 6,
+    border: '1px solid #1e2038', background: 'transparent',
+    color: '#00d4aa', fontSize: 14, cursor: 'pointer',
+  },
 };

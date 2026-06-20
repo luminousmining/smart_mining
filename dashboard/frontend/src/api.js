@@ -29,4 +29,7 @@ export const api = {
     return get('/api-history' + (qs ? '?' + qs : ''));
   },
   apiHistoryNames:  ()             => get('/api-history-names'),
+  poolStatus:       ()             => get('/pool-status'),
+  apiStatus:        ()             => get('/api-status'),
+  profileData:      (type)        => get(`/profile/${encodeURIComponent(type)}`),
 };

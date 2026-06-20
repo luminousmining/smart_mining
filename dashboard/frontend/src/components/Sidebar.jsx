@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react';
 import { api } from '../api';
 
 const NAV = [
-  { id: 'coins',       label: 'Coins',          icon: CoinIcon,    group: 'Market' },
-  { id: 'history',     label: 'History',        icon: ChartIcon,   group: 'Market' },
-  { id: 'mixed',       label: 'Compare Coins',  icon: CompareIcon, group: 'Market' },
-  { id: 'hardware',    label: 'Hardware',        icon: HardwareIcon,group: 'Mining' },
-  { id: 'pools',       label: 'Pools',           icon: PoolIcon,    group: 'Mining' },
-  { id: 'poolhistory', label: 'Pool History',    icon: ChartIcon,   group: 'Mining' },
-  { id: 'poolcompare', label: 'Compare Pools',   icon: CompareIcon, group: 'Mining' },
-  { id: 'apihistory',  label: 'API History',     icon: PulseIcon,   group: 'System' },
+  { id: 'global-coins',      label: 'Coins',           icon: CoinIcon,     group: 'Global' },
+  { id: 'global-pools',      label: 'Pool Status',     icon: PoolIcon,     group: 'Global' },
+  { id: 'global-api',        label: 'API Status',      icon: PulseIcon,    group: 'Global' },
+  { id: 'global-hardware',   label: 'Hardware',        icon: HardwareIcon, group: 'Global' },
+  { id: 'history-coin',      label: 'Coin',            icon: ChartIcon,    group: 'History' },
+  { id: 'history-pools',     label: 'Pools',           icon: ChartIcon,    group: 'History' },
+  { id: 'history-api',       label: 'API',             icon: PulseIcon,    group: 'History' },
+  { id: 'finance-coins',     label: 'Compare Coins',   icon: CompareIcon,  group: 'Finance' },
+  { id: 'finance-pools',     label: 'Compare Pools',   icon: CompareIcon,  group: 'Finance' },
+  { id: 'profile-internal',  label: 'Internal',        icon: ProfileIcon,  group: 'Profile' },
 ];
 
 export default function Sidebar({ active, onNav, open, isMobile, onClose }) {
@@ -42,7 +44,7 @@ export default function Sidebar({ active, onNav, open, isMobile, onClose }) {
       </div>
 
       <ul style={s.list}>
-        {['Market', 'Mining', 'System'].map((group) => (
+        {['Global', 'History', 'Finance', 'Profile'].map((group) => (
           <li key={group}>
             <div style={s.group}>{group}</div>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -128,6 +130,14 @@ function PulseIcon() {
   );
 }
 
+function ProfileIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
+    </svg>
+  );
+}
+
 const s = {
   nav: {
     width: 210,
@@ -137,6 +147,7 @@ const s = {
     flexDirection: 'column',
     padding: '20px 10px',
     flexShrink: 0,
+    overflowY: 'auto',
   },
   logo: { display: 'flex', alignItems: 'center', gap: 10, padding: '4px 10px 28px' },
   logoMark: {

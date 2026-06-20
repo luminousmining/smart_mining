@@ -90,7 +90,7 @@ const CustomTooltip = ({ active, payload, label, metricFmt }) => {
   );
 };
 
-export default function PoolComparePage({ refreshInterval = 30_000 }) {
+export default function PoolComparePage() {
   const [allStats, setAllStats]   = useState([]);
   const [tags, setTags]           = useState([]);
   const [tagFilter, setTagFilter]       = useState('');
@@ -112,10 +112,6 @@ export default function PoolComparePage({ refreshInterval = 30_000 }) {
   }, [tagFilter]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    const id = setInterval(load, refreshInterval ?? 30_000);
-    return () => clearInterval(id);
-  }, [load]);
 
   // Pool names available for the current tag filter
   const availablePools = useMemo(
@@ -136,17 +132,13 @@ export default function PoolComparePage({ refreshInterval = 30_000 }) {
 
   const displayPools = selected.length ? selected : availablePools;
   const metricDef    = METRICS.find((m) => m.key === metric) ?? METRICS[0];
-  const chartData    = useMemo(() => mergePoolData(filteredStats, displayPools, metric), [filteredStats, displayPools, metric]);
 
-  const yDomain = useMemo(() => {
-    const vals = chartData.flatMap((d) => displayPools.map((p) => d[p])).filter((v) => v != null && !isNaN(v));
-    if (!vals.length) return ['auto', 'auto'];
-    const min = Math.min(...vals);
-    const max = Math.max(...vals);
-    const pad = (max - min) * 0.1 || 10;
-    return [min - pad, max + pad];
-  }, [chartData, displayPools]);
-  const summary      = useMemo(() => summaryRows(filteredStats, displayPools), [filteredStats, displayPools]);
+  const uniqueTags = useMemo(
+    () => [...new Set(filteredStats.map((r) => r.tag))].sort(),
+    [filteredStats]
+  );
+
+  const summary = useMemo(() => summaryRows(filteredStats, displayPools), [filteredStats, displayPools]);
 
   const togglePool = (p) =>
     setSelected((prev) => prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]);
@@ -165,7 +157,7 @@ export default function PoolComparePage({ refreshInterval = 30_000 }) {
     { key: 'matured',   label: '💰 Matured',   align: 'right', render: (v) => <span style={{ color: v > 0 ? '#22c55e' : '#4a4c6a' }}>{v ?? 0}</span> },
   ];
 
-  const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()} · refresh 30s` : 'Loading…';
+  const sub = lastUpdate ? `Updated ${lastUpdate.toLocaleTimeString()}` : 'Loading…';
 
   return (
     <div>
@@ -218,7 +210,7 @@ export default function PoolComparePage({ refreshInterval = 30_000 }) {
 
           {/* ── Right: charts + summary ── */}
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Metric selector */}
+            {/* Metric selector + refresh */}
             <div style={s.controls}>
               {METRICS.map((m) => (
                 <button
@@ -229,70 +221,62 @@ export default function PoolComparePage({ refreshInterval = 30_000 }) {
                   {m.label}
                 </button>
               ))}
+              <button onClick={load} style={s.metricBtn} disabled={loading} title="Refresh">↺</button>
             </div>
 
-            {/* Chart */}
-            <Card>
-              {chartData.length === 0 ? (
-                <div style={s.empty}>No data for selected filters.</div>
-              ) : (
-                <ResponsiveContainer width="100%" height={360}>
-                  <LineChart data={chartData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="1 4" stroke="#1a1b2e" vertical={false} />
-                    {metric === 'luck' && (
-                      <ReferenceLine y={100} stroke="#3a3c55" strokeDasharray="4 4" />
-                    )}
-                    <XAxis
-                      dataKey="time"
-                      tickFormatter={(v) => v ? new Date(v).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
-                      tick={{ fontSize: 10, fill: '#3a3c55' }}
-                      tickLine={false}
-                      axisLine={false}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      domain={yDomain}
-                      tickFormatter={metricDef.fmt}
-                      tick={{ fontSize: 10, fill: '#3a3c55' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={72}
-                    />
-                    <Tooltip content={<CustomTooltip metricFmt={metricDef.fmt} />} />
-                    <Legend
-                      wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-                      formatter={(v) => <span style={{ color: '#c8c8e0' }}>{v}</span>}
-                    />
-                    {displayPools.map((pool, i) => (
-                      <Line
-                        key={pool}
-                        type="monotone"
-                        dataKey={pool}
-                        stroke={metric === 'luck' ? '#6b6d8a' : PALETTE[i % PALETTE.length]}
-                        strokeWidth={1.5}
-                        dot={metric === 'luck'
-                          ? (props) => {
-                              const luck = Number(props.payload?.[pool]);
-                              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
-                              return <circle key={props.key} cx={props.cx} cy={props.cy} r={4} fill={fill} />;
+            {/* One chart per coin/tag */}
+            {uniqueTags.length === 0 ? (
+              <Card><div style={s.empty}>No data for selected filters.</div></Card>
+            ) : uniqueTags.map((tag) => {
+              const tagStats  = filteredStats.filter((r) => r.tag === tag);
+              const tagPools  = displayPools.filter((p) => tagStats.some((r) => r.name === p));
+              const tagData   = mergePoolData(tagStats, tagPools, metric);
+              const tagVals   = tagData.flatMap((d) => tagPools.map((p) => d[p])).filter((v) => v != null && !isNaN(v));
+              const tagDomain = tagVals.length ? (() => {
+                const mn = Math.min(...tagVals); const mx = Math.max(...tagVals); const pad = (mx - mn) * 0.1 || 10;
+                return [mn - pad, mx + pad];
+              })() : ['auto', 'auto'];
+              return (
+                <Card key={tag} title={`Coin: ${tag}`} style={{ marginBottom: 4 }}>
+                  {tagData.length === 0 ? (
+                    <div style={s.empty}>No data for {tag}.</div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={tagData} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="1 4" stroke="#1a1b2e" vertical={false} />
+                        {metric === 'luck' && <ReferenceLine y={100} stroke="#3a3c55" strokeDasharray="4 4" />}
+                        <XAxis
+                          dataKey="time"
+                          tickFormatter={(v) => v ? new Date(v).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''}
+                          tick={{ fontSize: 10, fill: '#3a3c55' }} tickLine={false} axisLine={false} interval="preserveStartEnd"
+                        />
+                        <YAxis
+                          domain={tagDomain} tickFormatter={metricDef.fmt}
+                          tick={{ fontSize: 10, fill: '#3a3c55' }} tickLine={false} axisLine={false} width={72}
+                        />
+                        <Tooltip content={<CustomTooltip metricFmt={metricDef.fmt} />} />
+                        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} formatter={(v) => <span style={{ color: '#c8c8e0' }}>{v}</span>} />
+                        {tagPools.map((pool, i) => (
+                          <Line
+                            key={pool} type="monotone" dataKey={pool}
+                            stroke={metric === 'luck' ? '#6b6d8a' : PALETTE[i % PALETTE.length]}
+                            strokeWidth={1.5} connectNulls={false}
+                            dot={metric === 'luck'
+                              ? (props) => { const luck = Number(props.payload?.[pool]); const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444'; return <circle key={props.key} cx={props.cx} cy={props.cy} r={4} fill={fill} />; }
+                              : { r: 3, fill: PALETTE[i % PALETTE.length], strokeWidth: 0 }
                             }
-                          : { r: 3, fill: PALETTE[i % PALETTE.length], strokeWidth: 0 }
-                        }
-                        activeDot={metric === 'luck'
-                          ? (props) => {
-                              const luck = Number(props.payload?.[pool]);
-                              const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444';
-                              return <circle key={props.key} cx={props.cx} cy={props.cy} r={6} fill={fill} />;
+                            activeDot={metric === 'luck'
+                              ? (props) => { const luck = Number(props.payload?.[pool]); const fill = luck >= 100 ? '#22c55e' : luck >= 80 ? '#f59e0b' : '#ef4444'; return <circle key={props.key} cx={props.cx} cy={props.cy} r={6} fill={fill} />; }
+                              : { r: 4, strokeWidth: 0 }
                             }
-                          : { r: 4, strokeWidth: 0 }
-                        }
-                        connectNulls={false}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </Card>
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </Card>
+              );
+            })}
 
             {/* Summary table */}
             <Card title="Summary">

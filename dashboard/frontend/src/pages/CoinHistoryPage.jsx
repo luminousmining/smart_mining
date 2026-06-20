@@ -101,7 +101,7 @@ function MetricChart({ data, metric }) {
 const today        = new Date().toISOString().split('T')[0];
 const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
 
-export default function CoinHistoryPage({ params = {}, refreshInterval = 30_000 }) {
+export default function CoinHistoryPage({ params = {} }) {
   const [coinNames, setCoinNames] = useState([]);
   const [selected, setSelected]   = useState(params.coin ?? '');
   const [dateFrom, setDateFrom]   = useState(sevenDaysAgo);
@@ -128,17 +128,12 @@ export default function CoinHistoryPage({ params = {}, refreshInterval = 30_000 
   }, [selected, dateFrom, dateTo]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => {
-    if (!selected) return;
-    const id = setInterval(load, refreshInterval ?? 30_000);
-    return () => clearInterval(id);
-  }, [load, selected]);
 
   return (
     <div>
       <PageHeader
         title="Coin History"
-        subtitle="Time series · refresh 30s"
+        subtitle="Time series"
         action={
           <div style={s.controls}>
             <select style={s.select} value={selected} onChange={(e) => setSelected(e.target.value)}>
@@ -149,6 +144,7 @@ export default function CoinHistoryPage({ params = {}, refreshInterval = 30_000 
             <input type="date" style={s.dateInput} value={dateFrom} max={dateTo} onChange={(e) => setDateFrom(e.target.value)} />
             <span style={{ color: '#4a4c6a', fontSize: 11 }}>→</span>
             <input type="date" style={s.dateInput} value={dateTo} min={dateFrom} max={today} onChange={(e) => setDateTo(e.target.value)} />
+            <button onClick={load} style={s.refreshBtn} disabled={loading} title="Refresh">↺</button>
           </div>
         }
       />
@@ -194,27 +190,9 @@ const s = {
     cursor: 'pointer',
     outline: 'none',
   },
-  seg: {
-    display: 'flex',
-    background: '#0d0e1a',
-    borderRadius: 7,
-    padding: 2,
-    gap: 2,
-    border: '1px solid #1e2038',
-  },
-  segBtn: {
-    padding: '4px 9px',
-    borderRadius: 5,
-    border: 'none',
-    background: 'transparent',
-    fontSize: 11,
-    fontWeight: 500,
-    color: '#4a4c6a',
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-  },
-  segActive: {
-    background: '#1a1b2e',
-    color: '#00d4aa',
+  refreshBtn: {
+    padding: '5px 10px', borderRadius: 6,
+    border: '1px solid #1e2038', background: 'transparent',
+    color: '#00d4aa', fontSize: 14, cursor: 'pointer',
   },
 };

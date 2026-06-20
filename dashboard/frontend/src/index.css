@@ -25,6 +25,36 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Safari draws its own native chrome (border/focus ring) on form controls.
+   Disable native appearance so ONLY our custom inline styles apply. */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  box-shadow: none;
+  font: inherit;
+}
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Keep a visible ring on text inputs / selects only for keyboard nav. */
+select:focus,
+input:focus,
+a:focus {
+  outline: none;
+  box-shadow: none;
+}
+select:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 .num {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';

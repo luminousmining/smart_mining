@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+
+const PAGE_SIZE = 50;
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell,
@@ -15,11 +17,12 @@ const STATUS_FILTER = [
 ];
 
 const RANGE_OPTIONS = [
-  { label: '1h',  value: 1 },
-  { label: '6h',  value: 6 },
-  { label: '24h', value: 24 },
-  { label: '7j',  value: 168 },
-  { label: '30j', value: 720 },
+  { label: '1h',   value: 1 },
+  { label: '6h',   value: 6 },
+  { label: '24h',  value: 24 },
+  { label: '7j',   value: 168 },
+  { label: '30j',  value: 720 },
+  { label: 'Tout', value: null },
 ];
 
 function fmt(ts) {
@@ -58,15 +61,16 @@ const TimelineTooltip = ({ active, payload }) => {
   );
 };
 
-export default function ApiHistoryPage({ refreshInterval }) {
+export default function ApiHistoryPage() {
   const [rows, setRows]         = useState([]);
   const [apiNames, setApiNames] = useState([]);
   const [apiName, setApiName]   = useState('');
   const [statusFilter, setStatusFilter] = useState(null);
-  const [rangeHours, setRangeHours]     = useState(24);
+  const [rangeHours, setRangeHours]     = useState(168);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
   const [view, setView]         = useState('timeline'); // 'timeline' | 'table'
+  const [tablePage, setTablePage] = useState(0);
 
   useEffect(() => {
     api.apiHistoryNames().then(setApiNames).catch(() => {});
@@ -75,7 +79,8 @@ export default function ApiHistoryPage({ refreshInterval }) {
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    const from = new Date(Date.now() - rangeHours * 3600_000).toISOString();
+    setTablePage(0);
+    const from = rangeHours != null ? new Date(Date.now() - rangeHours * 3600_000).toISOString() : undefined;
     api.apiHistory(apiName || undefined, statusFilter, 5000, from)
       .then(data => { setRows(data); setLoading(false); })
       .catch(err => { setError(err.message); setLoading(false); });
@@ -83,13 +88,13 @@ export default function ApiHistoryPage({ refreshInterval }) {
 
   useEffect(() => { load(); }, [load]);
 
-  useEffect(() => {
-    const id = setInterval(load, refreshInterval);
-    return () => clearInterval(id);
-  }, [load, refreshInterval]);
-
   const successCount = rows.filter(r => r.success).length;
   const failCount    = rows.filter(r => !r.success).length;
+  const totalPages   = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const pagedRows    = useMemo(
+    () => rows.slice(tablePage * PAGE_SIZE, (tablePage + 1) * PAGE_SIZE),
+    [rows, tablePage]
+  );
 
   // Prepare timeline data: map api_name to a Y index
   const { chartData, apiIndex } = useMemo(() => {
@@ -133,6 +138,7 @@ export default function ApiHistoryPage({ refreshInterval }) {
           {STATUS_FILTER.map(({ label, value }) => (
             <button
               key={label}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setStatusFilter(value)}
               style={{
                 ...s.btn,
@@ -149,7 +155,8 @@ export default function ApiHistoryPage({ refreshInterval }) {
         <div style={s.btnGroup}>
           {RANGE_OPTIONS.map(({ label, value }) => (
             <button
-              key={value}
+              key={label}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => setRangeHours(value)}
               style={{
                 ...s.btn,
@@ -163,12 +170,14 @@ export default function ApiHistoryPage({ refreshInterval }) {
 
         <div style={{ ...s.btnGroup, marginLeft: 'auto' }}>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setView('timeline')}
             style={{ ...s.btn, ...(view === 'timeline' ? s.btnActive : {}) }}
           >
             Timeline
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setView('table')}
             style={{ ...s.btn, ...(view === 'table' ? s.btnActive : {}) }}
           >
@@ -176,7 +185,7 @@ export default function ApiHistoryPage({ refreshInterval }) {
           </button>
         </div>
 
-        <button onClick={load} style={s.refreshBtn} disabled={loading}>
+        <button onMouseDown={(e) => e.preventDefault()} onClick={load} style={s.refreshBtn} disabled={loading}>
           {loading ? '...' : '↺'}
         </button>
       </div>
@@ -246,7 +255,7 @@ export default function ApiHistoryPage({ refreshInterval }) {
                   </td>
                 </tr>
               )}
-              {rows.map(row => (
+              {pagedRows.map(row => (
                 <tr key={row.id} style={s.tr}>
                   <td style={{ ...s.td, color: '#7a7c9a', fontSize: 12, whiteSpace: 'nowrap' }}>{fmt(row.called_at)}</td>
                   <td style={{ ...s.td, fontFamily: 'monospace', color: '#c4c4d4' }}>{row.api_name}</td>
@@ -266,6 +275,15 @@ export default function ApiHistoryPage({ refreshInterval }) {
               ))}
             </tbody>
           </table>
+          {rows.length > PAGE_SIZE && (
+            <div style={s.pagination}>
+              <button style={s.pageBtn} onClick={() => setTablePage(0)} disabled={tablePage === 0}>«</button>
+              <button style={s.pageBtn} onClick={() => setTablePage(p => p - 1)} disabled={tablePage === 0}>‹</button>
+              <span style={s.pageInfo}>{tablePage + 1} / {totalPages} · {rows.length} lignes</span>
+              <button style={s.pageBtn} onClick={() => setTablePage(p => p + 1)} disabled={tablePage >= totalPages - 1}>›</button>
+              <button style={s.pageBtn} onClick={() => setTablePage(totalPages - 1)} disabled={tablePage >= totalPages - 1}>»</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -286,7 +304,7 @@ const s = {
   btn: {
     padding: '5px 12px', borderRadius: 6, border: '1px solid #1e2038',
     background: 'transparent', color: '#4a4c6a', fontSize: 12, fontWeight: 500,
-    cursor: 'pointer',
+    cursor: 'pointer', outline: 'none',
   },
   btnActive: { background: '#1a1b2e', borderColor: '#2e3050', color: '#00d4aa' },
   refreshBtn: {
@@ -317,4 +335,14 @@ const s = {
     display: 'inline-block', padding: '2px 8px', borderRadius: 4,
     background: '#dc262622', color: '#ef4444', fontSize: 12, fontWeight: 600,
   },
+  pagination: {
+    display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px',
+    borderTop: '1px solid #1a1b2e', justifyContent: 'center',
+  },
+  pageBtn: {
+    padding: '4px 10px', borderRadius: 6, border: '1px solid #1e2038',
+    background: 'transparent', color: '#c4c4d4', fontSize: 12, cursor: 'pointer',
+    disabled: { opacity: 0.4 },
+  },
+  pageInfo: { fontSize: 12, color: '#4a4c6a', padding: '0 8px' },
 };

@@ -29,7 +29,7 @@ function buildColumns(onNavigate) {
         <button
           style={s.histBtn}
           title="View History"
-          onClick={() => onNavigate('history', { coin: row.name })}
+          onClick={() => onNavigate('history-coin', { coin: row.name })}
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
