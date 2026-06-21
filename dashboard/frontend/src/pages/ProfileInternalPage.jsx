@@ -53,6 +53,7 @@ export default function ProfileInternalPage() {
     }
   }, [selected]);
 
+  // Refetch on mount and every time a different profile is selected.
   useEffect(() => { load(); }, [load]);
 
   return (

@@ -8,6 +8,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Live dashboard data must never be cached (browser or reverse proxy).
+app.use((_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT) || 5432,

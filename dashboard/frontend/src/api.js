@@ -1,7 +1,9 @@
 const BASE = '/api';
 
 async function get(path) {
-  const res = await fetch(BASE + path);
+  // no-store: always hit the network, never serve a stale cached response
+  // (the browser / reverse-proxy would otherwise cache GET /api/* in prod).
+  const res = await fetch(BASE + path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
