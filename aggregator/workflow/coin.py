@@ -37,7 +37,7 @@ def workflow_coin_binance(config: Config, coin_manager: CoinManager, api_history
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -77,10 +77,9 @@ def workflow_coin_binance(config: Config, coin_manager: CoinManager, api_history
             if coin:
                 update_coin_by_binance(coin, raw)
 
-        success = True
-
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -101,7 +100,7 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -122,7 +121,6 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
                 ids_to_fetch.append(cg_id)
 
         if not ids_to_fetch:
-            success = True
             return
 
         ###########################################################################
@@ -141,10 +139,9 @@ def workflow_coin_coingecko(config: Config, coin_manager: CoinManager, api_histo
             if coin:
                 update_coin_by_coingecko(coin, usd)
 
-        success = True
-
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -165,7 +162,7 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -180,22 +177,27 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
             for _, value in coins.items():
                 tag = value['ticker'].lower()
                 name = value['name'].lower()
-                if tag == 'nicehash' or 'nicehash' in name:
+
+                if not tag or tag == 'nicehash' or 'nicehash' in name:
                     continue
+
                 coin = coin_manager.get_from_tag(tag)
                 if coin is None:
                     coin = Coin()
-                    coin.tag = tag
-                    coin.name = name
+                    coin.set_tag(tag, True)
+                    coin.set_name(name, True)
                     coin_manager.insert(coin)
-                coin.algorithm = value['algorithm'].lower().replace('-', '')
+
+                algorithm = value['algorithm'].lower().replace('-', '')
+                coin.set_algorithm(algorithm, True)
+
                 update_coin_by_hashrate_no(coin, value)
-            success = True
         else:
             message = 'API returned empty response'
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -216,7 +218,7 @@ def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -260,10 +262,9 @@ def workflow_coin_miner_stat(config: Config, coin_manager: CoinManager, hardware
                     speed=speed,
                     power=power)
 
-        success = True
-
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -284,7 +285,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -297,23 +298,28 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
         for name, value in coins.items():
             tag = value['tag'].lower()
             name = name.lower()
+
             if tag == 'nicehash' or 'nicehash' in name:
                 continue
+
             coin = coin_manager.get_from_tag(tag)
             if coin is None:
                 coin = Coin()
-                coin.tag = tag
-                coin.name = name
+                coin.set_tag(tag, True)
+                coin.set_name(name, True)
                 coin_manager.insert(coin)
-            coin.name = name
-            coin.algorithm = value['algorithm'].lower().replace('-', '')
-            coin.reward.market_cap = float(value['market_cap'].replace('$', '').replace(',', ''))
-            update_coin_by_what_to_mine(coin, value)
 
-        success = True
+            algorithm = value['algorithm'].lower().replace('-', '')
+            market_cap = float(value['market_cap'].replace('$', '').replace(',', ''))
+            coin.set_name(name, True)
+            coin.set_algorithm(algorithm, True)
+            coin.reward.set_market_cap(market_cap, True)
+
+            update_coin_by_what_to_mine(coin, value)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -334,7 +340,7 @@ def workflow_coin_coinpaprika(config: Config, coin_manager: CoinManager, api_his
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -358,13 +364,12 @@ def workflow_coin_coinpaprika(config: Config, coin_manager: CoinManager, api_his
             usd = quotes['price']
             market_cap = quotes['market_cap']
 
-            coin.reward.market_cap = market_cap
-            coin.reward.usd = usd
-
-        success = True
+            coin.reward.set_market_cap(market_cap, True)
+            coin.reward.set_usd(usd, True)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -385,7 +390,7 @@ def workflow_coin_coinmarketcap(config: Config, coin_manager: CoinManager, api_h
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -409,13 +414,12 @@ def workflow_coin_coinmarketcap(config: Config, coin_manager: CoinManager, api_h
             usd = quote['price']
             market_cap = quote['market_cap']
 
-            coin.reward.market_cap = market_cap
-            coin.reward.usd = usd
-
-        success = True
+            coin.reward.set_market_cap(market_cap, True)
+            coin.reward.set_usd(usd, True)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -436,7 +440,7 @@ def workflow_coin_coincap(config: Config, coin_manager: CoinManager, api_history
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -461,14 +465,13 @@ def workflow_coin_coincap(config: Config, coin_manager: CoinManager, api_history
             market_cap = entry['marketCapUsd']
 
             if usd:
-                coin.reward.usd = float(usd)
+                coin.reward.set_usd(float(usd), True)
             if market_cap:
-                coin.reward.market_cap = float(market_cap)
-
-        success = True
+                coin.reward.set_market_cap(float(market_cap), True)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -489,7 +492,7 @@ def workflow_coin_messari(config: Config, coin_manager: CoinManager, api_history
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -514,14 +517,13 @@ def workflow_coin_messari(config: Config, coin_manager: CoinManager, api_history
             market_cap = metrics['marketcap']['current_marketcap_usd']
 
             if usd:
-                coin.reward.usd = float(usd)
+                coin.reward.set_usd(float(usd), True)
             if market_cap:
-                coin.reward.market_cap = float(market_cap)
-
-        success = True
+                coin.reward.set_market_cap(float(market_cap), True)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -542,7 +544,7 @@ def workflow_coin_cryptocompare(config: Config, coin_manager: CoinManager, api_h
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -556,7 +558,6 @@ def workflow_coin_cryptocompare(config: Config, coin_manager: CoinManager, api_h
         tags = [coin.tag.upper() for coin in coin_manager.get_all() if coin.tag]
         tags = tags[:300]
         if not tags:
-            success = True
             return
 
         logging.info('🔄 get prices...')
@@ -574,13 +575,12 @@ def workflow_coin_cryptocompare(config: Config, coin_manager: CoinManager, api_h
             usd = quotes['USD']['PRICE']
             market_cap = quotes['USD']['MKTCAP']
 
-            coin.reward.market_cap = market_cap
-            coin.reward.usd = usd
-
-        success = True
+            coin.reward.set_market_cap(market_cap, True)
+            coin.reward.set_usd(usd, True)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 

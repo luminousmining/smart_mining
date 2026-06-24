@@ -28,7 +28,7 @@ def workflow_pool_miner_stat(config: Config, coin_manager: CoinManager, pool_man
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -70,9 +70,8 @@ def workflow_pool_miner_stat(config: Config, coin_manager: CoinManager, pool_man
 
                 pool_manager.update_pool(pool)
 
-        success = True
-
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -92,7 +91,7 @@ def workflow_pool_nanopool(config: Config, pool_manager: PoolManager, api_histor
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     api = NanopoolAPI(config.apis.nanopool, config.folder_output)
@@ -110,9 +109,8 @@ def workflow_pool_nanopool(config: Config, pool_manager: PoolManager, api_histor
         logging.info('🔄 Update block stats')
         block_stats = api.get_block_stats()
 
-        success = True
-
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -133,7 +131,7 @@ def workflow_pool_2miners(config: Config, pool_manager: PoolManager, api_history
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -204,9 +202,8 @@ def workflow_pool_2miners(config: Config, pool_manager: PoolManager, api_history
 
         ###########################################################################
         pool_manager.update_pool(pool)
-        success = True
-
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 

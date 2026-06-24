@@ -32,7 +32,7 @@ def workflow_explorer_ergo(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -50,19 +50,19 @@ def workflow_explorer_ergo(
         coin = coin_manager.get_from_tag('erg')
         if coin is None:
             coin = Coin()
-            coin.name = 'erg'
-            coin.tag = 'erg'
+            coin.set_name('erg', True)
+            coin.set_tag('erg', True)
             coin_manager.insert(coin)
 
         network_hashrate = raw.get('networkHashrate')
         difficulty       = raw.get('difficulty')
         block_height     = raw.get('fullHeight')
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -87,7 +87,7 @@ def workflow_explorer_kaspa(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -106,20 +106,20 @@ def workflow_explorer_kaspa(
         coin = coin_manager.get_from_tag('kas')
         if coin is None:
             coin = Coin()
-            coin.name = 'kas'
-            coin.tag = 'kas'
+            coin.set_name('kas', True)
+            coin.set_tag('kas', True)
             coin_manager.insert(coin)
 
         _hashrate_ghs    = hashrate_info.get('hashrate')
         network_hashrate = float(_hashrate_ghs) * 1e9 if _hashrate_ghs is not None else None
         difficulty       = blockdag_info.get('difficulty')
         block_height     = blockdag_info.get('virtualDaaScore')
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -144,7 +144,7 @@ def workflow_explorer_rvn(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -163,18 +163,18 @@ def workflow_explorer_rvn(
         coin = coin_manager.get_from_tag('rvn')
         if coin is None:
             coin = Coin()
-            coin.name = 'rvn'
-            coin.tag = 'rvn'
+            coin.set_name('rvn', True)
+            coin.set_tag('rvn', True)
             coin_manager.insert(coin)
 
         difficulty   = blockchain_info.get('difficulty')
         block_height = blockchain_info.get('blocks')
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -199,7 +199,7 @@ def workflow_explorer_xmr(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -218,19 +218,19 @@ def workflow_explorer_xmr(
         coin = coin_manager.get_from_tag('xmr')
         if coin is None:
             coin = Coin()
-            coin.name = 'xmr'
-            coin.tag = 'xmr'
+            coin.set_name('xmr', True)
+            coin.set_tag('xmr', True)
             coin_manager.insert(coin)
 
         network_hashrate = data.get('hash_rate')
         difficulty       = data.get('difficulty')
         block_height     = data.get('height')
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -255,7 +255,7 @@ def workflow_explorer_cfx(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -279,19 +279,19 @@ def workflow_explorer_cfx(
         coin = coin_manager.get_from_tag('cfx')
         if coin is None:
             coin = Coin()
-            coin.name = 'cfx'
-            coin.tag = 'cfx'
+            coin.set_name('cfx', True)
+            coin.set_tag('cfx', True)
             coin_manager.insert(coin)
 
         network_hashrate = latest.get('hashRate')
         difficulty       = latest.get('difficulty')
         block_height     = None
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
@@ -316,7 +316,7 @@ def workflow_explorer_etc(
 
     ###########################################################################
     start_time = time.time()
-    success = False
+    success = True
     message = ''
 
     ###########################################################################
@@ -334,19 +334,19 @@ def workflow_explorer_etc(
         coin = coin_manager.get_from_tag('etc')
         if coin is None:
             coin = Coin()
-            coin.name = 'etc'
-            coin.tag = 'etc'
+            coin.set_name('etc', True)
+            coin.set_tag('etc', True)
             coin_manager.insert(coin)
 
         network_hashrate = raw.get('network_hashrate')
         difficulty       = raw.get('difficulty')
         block_height     = raw.get('total_blocks')
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
-        success = True
+        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
 
     ###########################################################################
     except Exception as err:
+        success = False
         message = str(err)
         logging.error(f'❌ {err}')
 
