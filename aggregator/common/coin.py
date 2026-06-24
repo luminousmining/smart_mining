@@ -12,17 +12,30 @@ class Coin:
 
     def merge(self, other, new_assign: bool = False):
         #######################################################################
-        if not new_assign:
-            self.name = self.name if self.name else other.name
-            self.tag = self.tag if self.tag else other.tag
-            self.algorithm = self.algorithm if self.algorithm else other.algorithm
-        else:
-            self.name = other.name if other.name else self.name
-            self.tag = other.tag if other.tag else self.tag
-            self.algorithm = other.algorithm if other.algorithm else self.algorithm
+        self.set_name(other.name, new_assign)
+        self.set_tag(other.tag, new_assign)
+        self.set_algorithm(other.algorithm, new_assign)
 
         #######################################################################
         self.reward.merge(other.reward, new_assign=new_assign)
+
+    def set_name(self, new_value: str, new_assign: bool = False) -> None:
+        if not new_assign:
+            self.name = self.name if self.name else new_value
+        else:
+            self.name = new_value if new_value else self.name
+        
+    def set_tag(self, new_value: str, new_assign: bool = False) -> None:
+        if not new_assign:
+            self.tag = self.tag if self.tag else new_value
+        else:
+            self.tag = new_value if new_value else self.tag
+
+    def set_algorithm(self, new_name: str, new_assign: bool = False) -> None:
+        if not new_assign:
+            self.algorithm = self.algorithm if self.algorithm else new_name
+        else:
+            self.algorithm = new_name if new_name else self.algorithm
 
     def to_dict(self) -> dict:
         data = dict()
