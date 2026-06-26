@@ -94,6 +94,25 @@ class CoinManager:
                     logging.warning(f'⚠️ {key}: {attr}={val} invalide, set to None')
                     setattr(reward, attr, None)
 
+            # Force override name coin
+            attr_override = {
+                'name': {
+                    'arrr': 'pirate chain',
+                    'beam': 'beam',
+                    'cap':  'capstash',
+                    'cfx':  'conflux',
+                    'dnx':  'dynex',
+                    'epic': 'epic cash',
+                    'geod': 'geodnet',
+                    'grin': 'grin',
+                    'mewc': 'meowcoin',
+                    'prl':  'pearl',
+                    'qrl':  'quantum resistant ledger',
+                    'quai': 'quai',
+                }
+            }
+            coin.name = attr_override['name'].get(coin.tag, coin.name)
+
             reason = None
             if not reward.emission_usd or reward.emission_usd <= 0.0 or _is_nan_or_negative(reward.emission_usd):
                 reason = f'emission_usd invalide ({reward.emission_usd})'

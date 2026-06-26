@@ -51,10 +51,12 @@ class Coin:
 
 def update_coin_by_binance(coin: Coin, data: dict) -> None:
     price = data['price']
+    coin.reward.set_usd(float(price) if price else None, True)
 
 
 def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
+    coin.set_algorithm(data['algorithm'].lower().replace('-', ''), True)
     price = data['price']['USD']
     hashrate =  data['network']['hashrate']
     difficulty =  data['network']['difficulty']
@@ -62,18 +64,20 @@ def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     emissionUSD =  data['network']['emissionUSD']
 
     #######################################################################
-    coin.reward.usd = float(price) if price else 0
-    coin.reward.network_hashrate = float(hashrate) if hashrate else 0
-    coin.reward.difficulty = float(difficulty) if difficulty else 0
-    coin.reward.emission_coin = float(emission) if emission else 0
-    coin.reward.emission_usd = float(emissionUSD) if emissionUSD else 0
+    coin.reward.set_usd(float(price) if price else None, True)
+    coin.reward.set_network_hashrate(float(hashrate) if hashrate else None, True)
+    coin.reward.set_difficulty(float(difficulty) if difficulty else None, True)
+    coin.reward.set_emission_coin(float(emission) if emission else None, True)
+    coin.reward.set_emission_usd(float(emissionUSD) if emissionUSD else None, True)
 
 
 def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:
     #######################################################################
-    coin.reward.difficulty = float(data['difficulty'])
-    coin.reward.network_hashrate = float(data['nethash'])
-    coin.reward.market_cap = float(data['market_cap'].replace('$', '').replace(',', ''))
+    coin.set_algorithm(data['algorithm'].lower().replace('-', ''), True)
+    coin.reward.set_market_cap(float(data['market_cap'].replace('$', '').replace(',', '')), True)
+    coin.reward.set_difficulty(float(data['difficulty']), False)
+    coin.reward.set_network_hashrate(float(data['nethash']), False)
+    coin.reward.set_market_cap(float(data['market_cap'].replace('$', '').replace(',', '')), False)
 
     #######################################################################
     seconds_by_day = float(86400)
@@ -81,24 +85,27 @@ def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:
     block_time = float(data['block_time'])
     if block_time and block_time > 0.0:
         block_by_day = seconds_by_day / block_time
-        coin.reward.emission_coin = block_by_day * block_reward
+        coin.reward.set_emission_coin(block_by_day * block_reward, True)
 
 
 def update_coin_by_minerstat(coin: Coin, data: dict) -> None:
     #######################################################################
-    coin.reward.usd = float(data['price']) if data['price'] != -1 else coin.reward.usd
-    coin.reward.network_hashrate = float(data['network_hashrate']) if data['network_hashrate'] != -1 else coin.reward.network_hashrate
-    coin.reward.difficulty = float(data['difficulty']) if data['difficulty'] != -1 else coin.reward.difficulty
+    if data['price'] != -1:
+        coin.reward.set_usd(float(data['price']), True)
+    if data['network_hashrate'] != -1:
+        coin.reward.set_network_hashrate(float(data['network_hashrate']), True)
+    if data['difficulty'] != -1:
+        coin.reward.set_difficulty(float(data['difficulty']), True)
 
 
 def update_coin_by_coingecko(coin: Coin, usd: float) -> None:
-    coin.reward.usd = float(usd)
+    coin.reward.set_usd(float(usd), True)
 
 
 def update_coin_by_explorer(coin: Coin, network_hashrate: float, difficulty: float, block_height: int) -> None:
     if network_hashrate:
-        coin.reward.network_hashrate = float(network_hashrate)
+        coin.reward.set_network_hashrate(float(network_hashrate), True)
     if difficulty:
-        coin.reward.difficulty = float(difficulty)
+        coin.reward.set_difficulty(float(difficulty), True)
     if block_height:
         coin.block_height = int(block_height)

@@ -188,9 +188,6 @@ def workflow_coin_hashrate_no(config: Config, coin_manager: CoinManager, api_his
                     coin.set_name(name, True)
                     coin_manager.insert(coin)
 
-                algorithm = value['algorithm'].lower().replace('-', '')
-                coin.set_algorithm(algorithm, True)
-
                 update_coin_by_hashrate_no(coin, value)
         else:
             message = 'API returned empty response'
@@ -302,6 +299,14 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
             if tag == 'nicehash' or 'nicehash' in name:
                 continue
 
+            # Skip coins
+            if tag in ('epic'):
+                continue
+
+            # skip coin without name
+            if not name:
+                continue
+
             coin = coin_manager.get_from_tag(tag)
             if coin is None:
                 coin = Coin()
@@ -309,11 +314,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
                 coin.set_name(name, True)
                 coin_manager.insert(coin)
 
-            algorithm = value['algorithm'].lower().replace('-', '')
-            market_cap = float(value['market_cap'].replace('$', '').replace(',', ''))
             coin.set_name(name, True)
-            coin.set_algorithm(algorithm, True)
-            coin.reward.set_market_cap(market_cap, True)
 
             update_coin_by_what_to_mine(coin, value)
 
@@ -354,6 +355,11 @@ def workflow_coin_coinpaprika(config: Config, coin_manager: CoinManager, api_his
         logging.info('🔄 collecting market data...')
         for entry in tickers:
             symbol = entry['symbol'].lower()
+
+            # skip coins
+            if symbol in ('cap', 'beam', 'cfx', 'epic', 'geod',
+                          'prl'):
+                continue
 
             coin = coin_manager.get_from_tag(symbol)
             if coin is None:

@@ -14,6 +14,10 @@ python3 aggregator.py --config config.json --mode application
 # Run benchmarks
 python3 benchmark.py --config config.json
 
+# Audit dataset/ for cross-API coin collisions and value divergences
+# Writes a Markdown report to dataset/arbiter/report.md (--threshold defaults to 0.10)
+python3 arbiter.py --config config.json --threshold 0.10
+
 # Install dependencies
 pip install -r requirements.txt
 ```
