@@ -3,6 +3,9 @@ import psycopg2
 import logging
 
 from config import Config
+from common.coin import Coin
+from common.reward import Reward
+from common.pool import Pool, CoinPool
 from common.coin_manager import CoinManager
 from common.pool_manager import PoolManager
 from common.hardware_manager import HardwareManager
@@ -165,6 +168,74 @@ class PostgreSQL:
                     f'{power}'\
                     ');'
             self.execute(query)
+
+    def _load_coin(self, coin_manager: CoinManager) -> None:
+        raw = self.request_all('SELECT * FROM coins')
+
+        for _, name, tag, algorithm, usd, usd_sec, difficulty, network_hashrate, \
+                hash_usd, emission_coin, emission_usd, market_cap in raw:
+            coin = Coin()
+            coin.name = name
+            coin.tag = tag
+            coin.algorithm = algorithm
+
+            reward = Reward()
+            reward.usd = float(usd)
+            reward.usd_sec = float(usd_sec)
+            reward.difficulty = float(difficulty)
+            reward.network_hashrate = float(network_hashrate)
+            reward.hash_usd = float(hash_usd)
+            reward.emission_coin = float(emission_coin)
+            reward.emission_usd = float(emission_usd)
+            reward.market_cap = float(market_cap)
+
+            coin.reward = reward
+
+            coin_manager.insert(coin)
+
+    def _load_pool(self, pool_manager: PoolManager) -> None:
+        raw = self.request_all('SELECT name, tag FROM pools')
+
+        for name, tag in raw:
+            coin = CoinPool()
+            coin.name = name
+            coin.tag = tag
+
+            pool = Pool()
+            pool.name = name
+            pool.update_coin(coin)
+
+            pool_manager.update_pool(pool)
+
+    def load(self, coin_manager: CoinManager, pool_manager: PoolManager) -> None:
+        ###########################################################################
+        logging.info('===== POSTGRESQL LOAD =====')
+
+        #######################################################################
+        start_time = time.time()
+
+        #######################################################################
+        if not self.cursor:
+            logging.error(f'❌ Cursor is invalid')
+            return
+        if not self.connection:
+            logging.error(f'❌ Connection is invalid')
+            return
+
+        #######################################################################
+        try:
+            self._load_coin(coin_manager)
+        except Exception as err:
+            logging.error(f'❌ Failed to load coins: {err}')
+
+        try:
+            self._load_pool(pool_manager)
+        except Exception as err:
+            logging.error(f'❌ Failed to load pools: {err}')
+
+        ###########################################################################
+        duration = time.time() - start_time
+        logging.info(f'🕐 load in {duration:.2f} seconds')
 
     def update(self, coin_manager: CoinManager, pool_manager: PoolManager, hardware_manager: HardwareManager, api_history_manager: ApiHistoryManager) -> None:
         ###########################################################################

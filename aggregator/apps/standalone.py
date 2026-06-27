@@ -68,10 +68,11 @@ def run_standalone(config: Config) -> None:
     hadrware_manager = HardwareManager()
     api_history_manager = ApiHistoryManager()
 
-    # Establish database connection
     pg = PostgreSQL(config)
-    if config.db.update and not pg.connect():
-        return
+    if config.db.update:
+        if not pg.connect():
+            return
+        pg.load(coin_manager, pool_manager)
 
     # Fetch cryptocurrency data from multiple external APIs
     workflow_coin_hashrate_no(config, coin_manager, api_history_manager)

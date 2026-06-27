@@ -124,6 +124,9 @@ def run_application(config: Config) -> None:
     if not pg.connect():
         return
 
+    # Seed managers with already persisted data
+    pg.load(coin_manager, pool_manager)
+
     t = config.timers
 
     # Timer Handlers Coins
