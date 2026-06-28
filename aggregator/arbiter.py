@@ -347,23 +347,32 @@ def render_report(by_ticker: dict, sources: dict, collisions: list,
     if not divergences:
         lines.append('_No divergences detected._')
     else:
-        lines.append('| Ticker | Metric | Min (source) | Max (source) '
-                     '| Spread % | All sources | Done |')
-        lines.append('|---|---|---|---|---|---|---|')
+        by_metric = {m: [] for m in METRICS}
         for div in divergences:
-            detail = ', '.join(
-                f'{src}={format_value(val)}'
-                for src, val in sorted(div['values'].items(), key=lambda kv: kv[1])
-            )
-            lines.append(
-                f'| {div["ticker"]} '
-                f'| {div["metric"]} '
-                f'| {format_value(div["min_value"])} ({div["min_source"]}) '
-                f'| {format_value(div["max_value"])} ({div["max_source"]}) '
-                f'| {div["spread"]:.0%} '
-                f'| {detail} '
-                f'| ☐ |'
-            )
+            by_metric[div['metric']].append(div)
+
+        for metric in METRICS:
+            metric_divs = by_metric[metric]
+            if not metric_divs:
+                continue
+            lines.append(f'### {metric}')
+            lines.append('')
+            lines.append('| Ticker | Min (source) | Max (source) | Spread % | All sources | Done |')
+            lines.append('|---|---|---|---|---|---|')
+            for div in metric_divs:
+                detail = ', '.join(
+                    f'{src}={format_value(val)}'
+                    for src, val in sorted(div['values'].items(), key=lambda kv: kv[1])
+                )
+                lines.append(
+                    f'| {div["ticker"]} '
+                    f'| {format_value(div["min_value"])} ({div["min_source"]}) '
+                    f'| {format_value(div["max_value"])} ({div["max_source"]}) '
+                    f'| {div["spread"]:.0%} '
+                    f'| {detail} '
+                    f'| ☐ |'
+                )
+            lines.append('')
     lines.append('')
 
     return '\n'.join(lines)

@@ -57,18 +57,14 @@ def update_coin_by_binance(coin: Coin, data: dict) -> None:
 def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
     coin.set_algorithm(data['algorithm'].lower().replace('-', ''), True)
-    price = data['price']['USD']
-    hashrate =  data['network']['hashrate']
-    difficulty =  data['network']['difficulty']
     emission =  data['network']['emission']
     emissionUSD =  data['network']['emissionUSD']
 
     #######################################################################
-    coin.reward.set_usd(float(price) if price else None, True)
-    coin.reward.set_network_hashrate(float(hashrate) if hashrate else None, True)
-    coin.reward.set_difficulty(float(difficulty) if difficulty else None, True)
-    coin.reward.set_emission_coin(float(emission) if emission else None, True)
-    coin.reward.set_emission_usd(float(emissionUSD) if emissionUSD else None, True)
+    if emission:
+        coin.reward.set_emission_coin(float(emission), True)
+    if emissionUSD:
+        coin.reward.set_emission_usd(float(emissionUSD), True)
 
 
 def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:

@@ -123,10 +123,10 @@ class CoinManager:
                 keys_to_remove.append(key)
                 logging.warning(f'🔥 Coin rejected [{key}] — {reason}')
 
-        # TODO: Many coins need fix
-        logging.warning(f'⚠️ {len(keys_to_remove)} coins rejected!')
-        # for key in keys_to_remove:
-        #     del self._coins[key]
+        if keys_to_remove:
+            logging.warning(f'⚠️ {len(keys_to_remove)} coins rejected!')
+        for key in keys_to_remove:
+            del self._coins[key]
 
         for _, coin in self._coins.items():
             if coin.algorithm not in self._algorithms:
