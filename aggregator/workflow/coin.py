@@ -9,7 +9,6 @@ from api import (
     CoinMarketCapAPI,
     CoinCapAPI,
     MessariAPI,
-    CryptoCompareAPI,
     HashrateNoAPI,
     MinerStatAPI,
     WhatToMineAPI
@@ -538,60 +537,3 @@ def workflow_coin_messari(config: Config, coin_manager: CoinManager, api_history
         duration = time.time() - start_time
         logging.info(f'🕐 synchro in {duration:.2f} seconds')
         api_history_manager.add('messari', success, int(duration * 1000), message)
-
-
-def workflow_coin_cryptocompare(config: Config, coin_manager: CoinManager, api_history_manager: ApiHistoryManager) -> None:
-    logging.info('===== WORKFLOW CRYPTOCOMPARE COIN =====')
-
-    ###########################################################################
-    if not config.apis.cryptocompare:
-        logging.info('🚮 Skipped!')
-        return
-
-    ###########################################################################
-    start_time = time.time()
-    success = True
-    message = ''
-
-    ###########################################################################
-    api = CryptoCompareAPI(config.apis.cryptocompare, config.folder_output)
-
-    ###########################################################################
-    try:
-        # CryptoCompare expects an explicit symbol list, so only request the
-        # coins we already track (and cap the batch to keep the URL sane).
-        logging.info('🔄 collect coins to enrich...')
-        tags = [coin.tag.upper() for coin in coin_manager.get_all() if coin.tag]
-        tags = tags[:300]
-        if not tags:
-            return
-
-        logging.info('🔄 get prices...')
-        prices = api.get_prices(','.join(tags))
-
-        logging.info('🔄 collecting market data...')
-        for symbol, quotes in prices['RAW'].items():
-            symbol = symbol.lower()
-
-            coin = coin_manager.get_from_tag(symbol)
-            if coin is None:
-                # skip coin so many coins are not in our list
-                continue
-
-            usd = quotes['USD']['PRICE']
-            market_cap = quotes['USD']['MKTCAP']
-
-            coin.reward.set_market_cap(market_cap, True)
-            coin.reward.set_usd(usd, True)
-
-    ###########################################################################
-    except Exception as err:
-        success = False
-        message = str(err)
-        logging.error(f'❌ {err}')
-
-    ###########################################################################
-    finally:
-        duration = time.time() - start_time
-        logging.info(f'🕐 synchro in {duration:.2f} seconds')
-        api_history_manager.add('cryptocompare', success, int(duration * 1000), message)

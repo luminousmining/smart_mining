@@ -18,15 +18,6 @@
 
 ### Priority 1 — Coin Price & Hashrate
 
-#### [CryptoCompare](https://www.cryptocompare.com/api#)
-- **Auth**: None (generous free tier)
-- **HTTPS**: Yes
-- **Interest**: Provides **network hashrate** for minable coins, multi-exchange price, and mining data (block time, block reward, difficulty). Directly relevant to mining. Probably the best source for network hashrate of alternative coins.
-- **Useful endpoints**:
-  - `GET /data/blockchain/latest?fsym={COIN}` — network hashrate, difficulty, block time
-  - `GET /data/price?fsym={COIN}&tsyms=USD` — simple price
-  - `GET /data/pricemulti?fsyms={LIST}&tsyms=USD` — batch price
-
 #### [CoinMarketCap](https://coinmarketcap.com/api/)
 - **Auth**: apiKey (free tier available)
 - **HTTPS**: Yes
@@ -101,8 +92,8 @@
 
 | Need | Already covered by | To add |
 |------|--------------------|--------|
-| Coin price | Binance, CoinGecko | CryptoCompare, CoinMarketCap (coins not listed on Binance) |
-| Coin network hashrate | Hashrate.no, WhatToMine, MinerStat | **CryptoCompare** (direct network hashrate, free) |
+| Coin price | Binance, CoinGecko | CoinMarketCap (coins not listed on Binance) |
+| Coin network hashrate | Hashrate.no, WhatToMine, MinerStat | — |
 | Pool luck | 2Miners, Nanopool | **Flexpool**, **Hiveon**, **F2Pool** |
 | Pool hashrate | 2Miners, Nanopool, MinerStat | **NiceHash** (hashrate per algo), **Flexpool**, **F2Pool** |
 | Pool blocks | 2Miners, Nanopool | **Flexpool**, **F2Pool** |

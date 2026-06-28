@@ -6,8 +6,7 @@ from api.market import (
     CoinPaprikaAPI,
     CoinMarketCapAPI,
     CoinCapAPI,
-    MessariAPI,
-    CryptoCompareAPI
+    MessariAPI
 )
 from api.mining import HashrateNoAPI, MinerStatAPI, WhatToMineAPI
 from api.pool import TwoMinersAPI, NanopoolAPI

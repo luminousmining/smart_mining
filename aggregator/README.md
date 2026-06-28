@@ -56,7 +56,6 @@ Endpoints are configured in `config.json` (see `config.json.example`). Sources w
 | CoinMarketCap | `https://pro-api.coinmarketcap.com/v1` | **Yes** | 30/min · 10k credits/month |
 | CoinCap | `https://rest.coincap.io` | **Yes** | 100 free credits (prepaid) |
 | Messari | `https://data.messari.io/api/v1` | **Yes** | 30/min · 2k/day |
-| CryptoCompare | `https://min-api.cryptocompare.com` | **Yes** | ~100k/month |
 
 ### Mining
 

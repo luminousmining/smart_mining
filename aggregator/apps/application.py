@@ -16,7 +16,6 @@ from workflow import (
     workflow_coin_coinmarketcap,
     workflow_coin_coincap,
     workflow_coin_messari,
-    workflow_coin_cryptocompare,
     workflow_coin_hashrate_no,
     workflow_coin_miner_stat,
     workflow_coin_what_to_mine
@@ -149,8 +148,6 @@ def run_application(config: Config) -> None:
         thmCoin.add_handler(HandlerNamespace.API, 'coincap', get_seconds(t.coincap), workflow_coin_coincap, config, coin_manager, api_history_manager)
     if config.apis.messari:
         thmCoin.add_handler(HandlerNamespace.API, 'messari', get_seconds(t.messari), workflow_coin_messari, config, coin_manager, api_history_manager)
-    if config.apis.cryptocompare:
-        thmCoin.add_handler(HandlerNamespace.API, 'cryptocompare', get_seconds(t.cryptocompare), workflow_coin_cryptocompare, config, coin_manager, api_history_manager)
 
     # Timer Handlers Explorers
     if 'erg' in config.apis.explorer:
@@ -193,7 +190,6 @@ def run_application(config: Config) -> None:
         thmCoin.process(HandlerNamespace.API, 'coinmarketcap')
         thmCoin.process(HandlerNamespace.API, 'coincap')
         thmCoin.process(HandlerNamespace.API, 'messari')
-        thmCoin.process(HandlerNamespace.API, 'cryptocompare')
 
         # Timer Pools
         thmPool.process(HandlerNamespace.POOL, '2miner')

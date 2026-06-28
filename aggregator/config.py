@@ -28,7 +28,6 @@ class ConfigAPIS:
         self.coinmarketcap = None
         self.coincap = None
         self.messari = None
-        self.cryptocompare = None
         self.two_miners = None
         self.nanopool = None
         self.explorer: dict = {}
@@ -55,7 +54,6 @@ class ConfigTimers:
         self.coinmarketcap = market.get('coinmarketcap', 120)
         self.coincap = market.get('coincap', 60)
         self.messari = market.get('messari', 60)
-        self.cryptocompare = market.get('cryptocompare', 60)
 
         mining = data.get('mining', {})
         self.hashrate_no = mining.get('hashrate_no', 3)
@@ -113,7 +111,6 @@ class Config:
             self.apis.coinmarketcap = ConfigAPI(market_obj['coinmarketcap']) if 'coinmarketcap' in market_obj else None
             self.apis.coincap = ConfigAPI(market_obj['coincap']) if 'coincap' in market_obj else None
             self.apis.messari = ConfigAPI(market_obj['messari']) if 'messari' in market_obj else None
-            self.apis.cryptocompare = ConfigAPI(market_obj['cryptocompare']) if 'cryptocompare' in market_obj else None
 
             mining_obj = data.get('mining', {})
             self.apis.hashrate_no = ConfigAPI(mining_obj['hashrate_no']) if 'hashrate_no' in mining_obj else None
