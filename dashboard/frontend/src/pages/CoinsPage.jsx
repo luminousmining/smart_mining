@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import DataTable from '../components/DataTable';
 import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
+import Tooltip from '../components/Tooltip';
 
 const fmtUsd = (v) =>
   v != null ? `$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 6 })}` : null;
@@ -40,25 +41,34 @@ function buildColumns(onNavigate) {
     {
       key: 'name',
       label: 'Coin',
-      render: (v) => <strong style={{ color: '#e4e4f0', fontWeight: 600 }}>{v}</strong>,
-    },
-    {
-      key: 'tag',
-      label: 'Tag',
-      render: (v) => v ? (
-        <span style={{ padding: '2px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#0d2030', color: '#00d4aa', letterSpacing: '0.3px' }}>
-          {v}
-        </span>
-      ) : null,
-    },
-    {
-      key: 'algorithm',
-      label: 'Algorithm',
-      render: (v) => v ? (
-        <span style={{ padding: '2px 7px', borderRadius: 4, fontSize: 11, background: '#181828', color: '#7070a0' }}>
-          {v}
-        </span>
-      ) : null,
+      render: (v, row) => {
+        const hasInfo = row.tag || row.algorithm;
+        const popup = hasInfo ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {row.tag && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, color: '#6b6d8a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Tag</span>
+                <span style={{ padding: '2px 7px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: '#0d2030', color: '#00d4aa', letterSpacing: '0.3px' }}>
+                  {row.tag}
+                </span>
+              </div>
+            )}
+            {row.algorithm && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 10, color: '#6b6d8a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>Algo</span>
+                <span style={{ padding: '2px 7px', borderRadius: 4, fontSize: 11, background: '#181828', color: '#7070a0' }}>
+                  {row.algorithm}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : null;
+        return (
+          <Tooltip content={popup}>
+            <strong style={{ color: '#e4e4f0', fontWeight: 600, cursor: hasInfo ? 'help' : 'default' }}>{v}</strong>
+          </Tooltip>
+        );
+      },
     },
     {
       key: 'usd',
@@ -69,12 +79,6 @@ function buildColumns(onNavigate) {
     { key: 'market_cap',       label: 'Market Cap',    align: 'right', render: fmtUsd },
     { key: 'difficulty',       label: 'Difficulty',    align: 'right', render: (v) => v != null ? Number(v).toLocaleString('en-US', { notation: 'compact', maximumFractionDigits: 2 }) : null },
     { key: 'network_hashrate', label: 'Net. Hashrate', align: 'right', render: fmtHash },
-    {
-      key: 'hash_usd',
-      label: 'Hash USD',
-      align: 'right',
-      render: (v) => v != null ? <span style={{ color: '#00d4aa' }}>${Number(v).toExponential(3)}</span> : null,
-    },
     { key: 'emission_usd', label: 'Emission USD', align: 'right', render: fmtUsd },
   ];
 }
