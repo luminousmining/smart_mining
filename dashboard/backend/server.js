@@ -206,6 +206,9 @@ app.get('/api/pool-status', async (_req, res) => {
 
 // ── API History ───────────────────────────────────────────────────────────────
 
+const API_HISTORY_MAX_ROWS    = 5000;   // safety cap for raw (non-sampled) results
+const API_HISTORY_MAX_BUCKETS = 20000;  // safety cap for downsampled output
+
 app.get('/api/api-history', async (req, res) => {
   try {
     const { api_name, success, limit, from, to } = req.query;
@@ -217,10 +220,39 @@ app.get('/api/api-history', async (req, res) => {
     if (from) { params.push(from); conditions.push(`called_at >= $${params.length}`); }
     if (to)   { params.push(to);   conditions.push(`called_at <= $${params.length}`); }
 
-    const maxRows = Math.min(parseInt(limit) || 200, 5000);
-    let query = 'SELECT id, api_name, success, duration_ms, message, called_at FROM api_history';
-    if (conditions.length) query += ' WHERE ' + conditions.join(' AND ');
-    query += ` ORDER BY called_at DESC LIMIT ${maxRows}`;
+    const where  = conditions.length ? ' WHERE ' + conditions.join(' AND ') : '';
+    const sample = Math.max(1, parseInt(req.query.sample) || 1);
+
+    let query;
+    if (sample > 1) {
+      // Downsample for the timeline: group `sample` consecutive calls per api_name
+      // (ordered by time) into a single point. A group is "failed" (red) if it
+      // contains at least one failure; duration is averaged; the representative
+      // timestamp is the group's time-span midpoint. Scans the full range — output
+      // is bounded by the number of buckets, not by a raw-row LIMIT.
+      params.push(sample);
+      const sampleIdx = params.length;
+      query = `
+        SELECT api_name,
+               min(called_at) AS ts_start,
+               max(called_at) AS ts_end,
+               min(called_at) + (max(called_at) - min(called_at)) / 2 AS called_at,
+               bool_and(success) AS success,
+               count(*) AS total,
+               count(*) FILTER (WHERE NOT success) AS fail_count,
+               round(avg(duration_ms))::int AS duration_ms
+        FROM (
+          SELECT api_name, success, duration_ms, called_at,
+                 (row_number() OVER (PARTITION BY api_name ORDER BY called_at) - 1) / $${sampleIdx}::int AS bucket
+          FROM api_history${where}
+        ) t
+        GROUP BY api_name, bucket
+        ORDER BY api_name, called_at
+        LIMIT ${API_HISTORY_MAX_BUCKETS}`;
+    } else {
+      const maxRows = Math.min(parseInt(limit) || 200, API_HISTORY_MAX_ROWS);
+      query = `SELECT id, api_name, success, duration_ms, message, called_at FROM api_history${where} ORDER BY called_at DESC LIMIT ${maxRows}`;
+    }
 
     const result = await pool.query(query, params);
     res.json(result.rows);

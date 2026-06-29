@@ -46,17 +46,27 @@ const TimelineTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
+  const grouped = d.total != null; // sampled bucket vs single call
+  const fails = Number(d.fail_count);
   return (
     <div style={{
       background: '#0d0e1a', border: '1px solid #2a2c45',
       borderRadius: 8, padding: '10px 14px', fontSize: 12,
     }}>
-      <div style={{ color: '#6b6d8a', marginBottom: 4 }}>{fmt(d.called_at)}</div>
-      <div style={{ fontFamily: 'monospace', color: '#c4c4d4', marginBottom: 4 }}>{d.api_name}</div>
-      <div style={{ color: d.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-        {d.success ? '✓ Succès' : '✗ Échec'} — {d.duration_ms} ms
+      <div style={{ color: '#6b6d8a', marginBottom: 4 }}>
+        {grouped ? `${fmt(d.ts_start)} → ${fmt(d.ts_end)}` : fmt(d.called_at)}
       </div>
-      {d.message && <div style={{ color: '#7a7c9a', marginTop: 4, maxWidth: 280, wordBreak: 'break-word' }}>{d.message}</div>}
+      <div style={{ fontFamily: 'monospace', color: '#c4c4d4', marginBottom: 4 }}>{d.api_name}</div>
+      {grouped ? (
+        <div style={{ color: d.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+          {d.total} appels · {fails} échec{fails > 1 ? 's' : ''} — moy. {d.duration_ms} ms
+        </div>
+      ) : (
+        <div style={{ color: d.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
+          {d.success ? '✓ Succès' : '✗ Échec'} — {d.duration_ms} ms
+        </div>
+      )}
+      {!grouped && d.message && <div style={{ color: '#7a7c9a', marginTop: 4, maxWidth: 280, wordBreak: 'break-word' }}>{d.message}</div>}
     </div>
   );
 };
@@ -67,6 +77,7 @@ export default function ApiHistoryPage() {
   const [apiName, setApiName]   = useState('');
   const [statusFilter, setStatusFilter] = useState(null);
   const [rangeHours, setRangeHours]     = useState(168);
+  const [sample, setSample]             = useState(100);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
   const [view, setView]         = useState('timeline'); // 'timeline' | 'table'
@@ -81,15 +92,24 @@ export default function ApiHistoryPage() {
     setError(null);
     setTablePage(0);
     const from = rangeHours != null ? new Date(Date.now() - rangeHours * 3600_000).toISOString() : undefined;
-    api.apiHistory(apiName || undefined, statusFilter, 5000, from)
+    // Downsampling applies to the timeline only; the table always shows raw calls.
+    const groupSize = view === 'timeline' ? sample : 1;
+    api.apiHistory(apiName || undefined, statusFilter, 5000, from, undefined, groupSize)
       .then(data => { setRows(data); setLoading(false); })
       .catch(err => { setError(err.message); setLoading(false); });
-  }, [apiName, statusFilter, rangeHours]);
+  }, [apiName, statusFilter, rangeHours, view, sample]);
 
   useEffect(() => { load(); }, [load]);
 
-  const successCount = rows.filter(r => r.success).length;
-  const failCount    = rows.filter(r => !r.success).length;
+  // In sampled mode each row is a bucket carrying total/fail_count instead of a single call.
+  const grouped      = rows.length > 0 && rows[0].total != null;
+  const successCount = grouped
+    ? rows.reduce((a, r) => a + (Number(r.total) - Number(r.fail_count)), 0)
+    : rows.filter(r => r.success).length;
+  const failCount    = grouped
+    ? rows.reduce((a, r) => a + Number(r.fail_count), 0)
+    : rows.filter(r => !r.success).length;
+  const totalCalls   = grouped ? rows.reduce((a, r) => a + Number(r.total), 0) : rows.length;
   const totalPages   = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const pagedRows    = useMemo(
     () => rows.slice(tablePage * PAGE_SIZE, (tablePage + 1) * PAGE_SIZE),
@@ -100,11 +120,13 @@ export default function ApiHistoryPage() {
   const { chartData, apiIndex } = useMemo(() => {
     const names = [...new Set(rows.map(r => r.api_name))].sort();
     const idx = Object.fromEntries(names.map((n, i) => [n, i]));
-    const data = rows.map(r => ({
-      ...r,
-      ts: new Date(r.called_at).getTime(),
-      y: idx[r.api_name],
-    }));
+    const data = rows
+      .map(r => ({
+        ...r,
+        ts: new Date(r.called_at).getTime(),
+        y: idx[r.api_name],
+      }))
+      .sort((a, b) => a.ts - b.ts); // keep time-ordered so the X scale spreads points correctly
     return { chartData: data, apiIndex: idx };
   }, [rows]);
 
@@ -168,6 +190,26 @@ export default function ApiHistoryPage() {
           ))}
         </div>
 
+        <label
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            color: view === 'timeline' ? '#7a7c9a' : '#3a3c55', fontSize: 12,
+            opacity: view === 'timeline' ? 1 : 0.5,
+          }}
+          title="Regroupe N appels bruts consécutifs en 1 point (Timeline). 1 = aucun regroupement."
+        >
+          Échantillon
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={sample}
+            disabled={view !== 'timeline'}
+            onChange={(e) => setSample(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            style={{ ...s.select, width: 70, cursor: view === 'timeline' ? 'text' : 'not-allowed' }}
+          />
+        </label>
+
         <div style={{ ...s.btnGroup, marginLeft: 'auto' }}>
           <button
             onMouseDown={(e) => e.preventDefault()}
@@ -195,7 +237,7 @@ export default function ApiHistoryPage() {
 
       {/* Timeline View */}
       {view === 'timeline' && rows.length > 0 && (
-        <Card title="Timeline" subtitle={`${rows.length} appels`}>
+        <Card title="Timeline" subtitle={grouped ? `${rows.length} points · ${totalCalls} appels` : `${rows.length} appels`}>
           <ResponsiveContainer width="100%" height={Math.max(200, apiLabels.length * 40 + 60)}>
             <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1a1b2e" />
