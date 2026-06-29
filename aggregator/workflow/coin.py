@@ -510,16 +510,16 @@ def workflow_coin_messari(config: Config, coin_manager: CoinManager, api_history
 
         logging.info('🔄 collecting market data...')
         for entry in assets['data']:
-            symbol = entry['symbol'].lower()
+            symbol = (entry.get('symbol') or '').lower()
 
             coin = coin_manager.get_from_tag(symbol)
             if coin is None:
                 # skip coin so many coins are not in our list
                 continue
 
-            metrics = entry['metrics']
-            usd = metrics['market_data']['price_usd']
-            market_cap = metrics['marketcap']['current_marketcap_usd']
+            market_data = entry.get('marketData') or {}
+            usd = market_data.get('priceUsd')
+            market_cap = (market_data.get('marketcap') or {}).get('circulatingUsd')
 
             if usd:
                 coin.reward.set_usd(float(usd), True)

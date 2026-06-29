@@ -6,8 +6,14 @@ from api import ApiHTTP
 from config import ConfigAPI
 
 
-# https://data.messari.io/api/v1 (free tier requires API key)
+https://docs.messari.io/api-reference/endpoints/metrics/
 class MessariAPI(ApiHTTP):
+
+    # /metrics/v2/assets/details is capped at 20 assets per request.
+    PAGE_SIZE = 20
+    # Bound the number of requests to stay within the free tier (30/min, 2k/day).
+    # 25 pages => top 500 assets by circulating market cap.
+    MAX_PAGES = 25
 
     def __init__(self, config: ConfigAPI, folder_output: str):
         super().__init__(config.host, config.api_key)
@@ -16,7 +22,7 @@ class MessariAPI(ApiHTTP):
         self.dump_file_assets = os.path.join(self.path_dump_file, 'assets.json')
 
         if self.use_api and config.api_key:
-            self.update_header('x-messari-api-key', self.api_key)
+            self.update_header('X-Messari-API-Key', self.api_key)
 
         if not os.path.exists(self.path_dump_file):
             os.makedirs(self.path_dump_file)
@@ -25,7 +31,22 @@ class MessariAPI(ApiHTTP):
         output_file = self.dump_file_assets
 
         if self.use_api and self.api_key:
-            assets = self.get('assets?fields=symbol,metrics/market_data,metrics/marketcap&limit=500')
+            # The details endpoint returns at most PAGE_SIZE assets, so paginate
+            # by descending market cap and accumulate into a single payload.
+            data = []
+            for page in range(1, self.MAX_PAGES + 1):
+                body = self.get(
+                    f'assets/details?page={page}&limit={self.PAGE_SIZE}'
+                    '&sort=circulating-marketcap&order=desc'
+                )
+                rows = body.get('data') if body else None
+                if not rows:
+                    break
+                data.extend(rows)
+                if len(rows) < self.PAGE_SIZE:
+                    break
+
+            assets = {'data': data}
             logging.debug(f'📥 Dumping in {output_file}')
             with open(output_file, 'w') as fd:
                 json.dump(assets, fd, indent=4)

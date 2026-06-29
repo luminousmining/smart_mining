@@ -55,7 +55,7 @@ Endpoints are configured in `config.json` (see `config.json.example`). Sources w
 | Coinpaprika | `https://api.coinpaprika.com` | No | 10/s · 20k/month |
 | CoinMarketCap | `https://pro-api.coinmarketcap.com/v1` | **Yes** | 30/min · 10k credits/month |
 | CoinCap | `https://rest.coincap.io` | **Yes** | 100 free credits (prepaid) |
-| Messari | `https://data.messari.io/api/v1` | **Yes** | 30/min · 2k/day |
+| Messari | `https://api.messari.io/metrics/v2` | **Yes** | 30/min · 2k/day |
 
 ### Mining
 
