@@ -21,6 +21,19 @@ const fmtHash = (v) => {
   return `${n.toFixed(2)} H/s`;
 };
 
+// Data-availability filters. Missing values are stored as 0 (the aggregator
+// converts None -> 0) and NUMERIC columns come back as strings, so `hasData`
+// normalises with Number() to handle 0, "0", null and undefined uniformly.
+const DATA_FILTERS = [
+  { key: 'usd',              label: 'USD' },
+  { key: 'market_cap',       label: 'Market Cap' },
+  { key: 'difficulty',       label: 'Difficulty' },
+  { key: 'network_hashrate', label: 'Network' },
+  { key: 'emission_usd',     label: 'Emission' },
+];
+
+const hasData = (v) => Number(v) > 0;
+
 function buildColumns(onNavigate) {
   return [
     {
@@ -88,6 +101,10 @@ export default function CoinsPage({ onNavigate, refreshInterval = 30_000 }) {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [filter, setFilter]   = useState('');
+  const [active, setActive]   = useState([]); // keys of enabled data filters
+
+  const toggle = (key) =>
+    setActive((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
 
   const load = useCallback(async () => {
     try {
@@ -106,15 +123,17 @@ export default function CoinsPage({ onNavigate, refreshInterval = 30_000 }) {
   }, [load]);
 
   const filtered = useMemo(() => {
-    if (!filter.trim()) return data;
-    const q = filter.toLowerCase();
-    return data.filter(
-      (r) =>
+    const q = filter.trim().toLowerCase();
+    return data.filter((r) => {
+      if (q && !(
         r.name?.toLowerCase().includes(q) ||
         r.tag?.toLowerCase().includes(q) ||
         r.algorithm?.toLowerCase().includes(q)
-    );
-  }, [data, filter]);
+      )) return false;
+      // every enabled filter requires that field to hold data (> 0)
+      return active.every((key) => hasData(r[key]));
+    });
+  }, [data, filter, active]);
 
   const columns = useMemo(() => buildColumns(onNavigate), [onNavigate]);
 
@@ -137,7 +156,37 @@ export default function CoinsPage({ onNavigate, refreshInterval = 30_000 }) {
       <Card>
         {loading ? <Spinner /> : (
           <>
-            {filter && (
+            <div style={s.filterBar}>
+              <span style={s.filterBarLabel}>Require data</span>
+              {DATA_FILTERS.map((f) => {
+                const on = active.includes(f.key);
+                return (
+                  <button
+                    key={f.key}
+                    style={{ ...s.toggleBtn, ...(on ? s.toggleBtnOn : {}) }}
+                    onClick={() => toggle(f.key)}
+                  >
+                    {on && <span style={{ marginRight: 4 }}>✓</span>}{f.label}
+                  </button>
+                );
+              })}
+              <Tooltip content={
+                <div style={{ maxWidth: 240, lineHeight: 1.5, color: '#c8c8e0' }}>
+                  Filters by data availability. When a field is enabled, a coin is shown
+                  only if it has a value for that field (greater than 0). Coins missing
+                  that data (e.g. BTC has no difficulty) are hidden. Enabling several
+                  fields requires all of them. With nothing enabled, all coins are shown.
+                </div>
+              }>
+                <span style={s.infoIcon}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                  </svg>
+                </span>
+              </Tooltip>
+            </div>
+            {(filter || active.length > 0) && (
               <div style={s.filterInfo}>
                 {filtered.length} / {data.length} coins
               </div>
@@ -165,6 +214,45 @@ const s = {
     fontSize: 11,
     color: '#4a4c6a',
     marginBottom: 10,
+  },
+  filterBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+    marginBottom: 14,
+  },
+  filterBarLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#6b6d8a',
+    textTransform: 'uppercase',
+    letterSpacing: '0.7px',
+    marginRight: 2,
+  },
+  toggleBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '6px 12px',
+    borderRadius: 7,
+    border: '1px solid #1e2038',
+    fontSize: 12,
+    fontWeight: 500,
+    color: '#4a4c6a',
+    background: 'transparent',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  toggleBtnOn: {
+    background: '#1a1b2e',
+    color: '#00d4aa',
+    borderColor: '#00d4aa44',
+  },
+  infoIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    color: '#4a4c6a',
+    cursor: 'help',
   },
   histBtn: {
     display: 'flex',
