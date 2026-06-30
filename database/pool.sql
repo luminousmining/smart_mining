@@ -6,7 +6,6 @@ DROP PROCEDURE IF EXISTS insert_pool_stats;
 -----------------------------------------------------------
 DROP TABLE IF EXISTS pools;
 DROP TABLE IF EXISTS pool_stats;
-DROP TABLE IF EXISTS pool_stats_history;
 
 
 -----------------------------------------------------------
