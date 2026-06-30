@@ -60,7 +60,7 @@ export default function ProfileInternalPage() {
     <div>
       <PageHeader
         title="Profile"
-        subtitle="Classements de rentabilité (procédures stockées)"
+        subtitle="Profitability rankings (stored procedures)"
         action={
           <div style={s.controls}>
             <select style={s.select} value={selected} onChange={(e) => setSelected(e.target.value)}>

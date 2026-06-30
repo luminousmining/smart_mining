@@ -6,7 +6,7 @@ from api import ApiHTTP
 from config import ConfigAPI
 
 
-https://docs.messari.io/api-reference/endpoints/metrics/
+#https://docs.messari.io/api-reference/endpoints/metrics/
 class MessariAPI(ApiHTTP):
 
     # /metrics/v2/assets/details is capped at 20 assets per request.

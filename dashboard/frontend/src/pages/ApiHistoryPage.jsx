@@ -11,24 +11,24 @@ import PageHeader from '../components/PageHeader';
 import Spinner from '../components/Spinner';
 
 const STATUS_FILTER = [
-  { label: 'Tous',    value: null },
-  { label: 'Succès',  value: true },
-  { label: 'Échecs',  value: false },
+  { label: 'All',      value: null },
+  { label: 'Success',  value: true },
+  { label: 'Failures', value: false },
 ];
 
 const RANGE_OPTIONS = [
-  { label: '1h',   value: 1 },
-  { label: '6h',   value: 6 },
-  { label: '24h',  value: 24 },
-  { label: '7j',   value: 168 },
-  { label: '30j',  value: 720 },
-  { label: 'Tout', value: null },
+  { label: '1h',  value: 1 },
+  { label: '6h',  value: 6 },
+  { label: '24h', value: 24 },
+  { label: '7d',  value: 168 },
+  { label: '30d', value: 720 },
+  { label: 'All', value: null },
 ];
 
 function fmt(ts) {
   if (!ts) return '—';
   const d = new Date(ts);
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString('en-US', {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
@@ -36,7 +36,7 @@ function fmt(ts) {
 
 function fmtTime(ts) {
   const d = new Date(ts);
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString('en-US', {
     day: '2-digit', month: '2-digit',
     hour: '2-digit', minute: '2-digit',
   });
@@ -59,11 +59,11 @@ const TimelineTooltip = ({ active, payload }) => {
       <div style={{ fontFamily: 'monospace', color: '#c4c4d4', marginBottom: 4 }}>{d.api_name}</div>
       {grouped ? (
         <div style={{ color: d.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-          {d.total} appels · {fails} échec{fails > 1 ? 's' : ''} — moy. {d.duration_ms} ms
+          {d.total} calls · {fails} fail{fails > 1 ? 's' : ''} — avg {d.duration_ms} ms
         </div>
       ) : (
         <div style={{ color: d.success ? '#22c55e' : '#ef4444', fontWeight: 600 }}>
-          {d.success ? '✓ Succès' : '✗ Échec'} — {d.duration_ms} ms
+          {d.success ? '✓ Success' : '✗ Failure'} — {d.duration_ms} ms
         </div>
       )}
       {!grouped && d.message && <div style={{ color: '#7a7c9a', marginTop: 4, maxWidth: 280, wordBreak: 'break-word' }}>{d.message}</div>}
@@ -136,7 +136,7 @@ export default function ApiHistoryPage() {
     <div>
       <PageHeader
         title="API History"
-        subtitle="Historique des appels API de l'aggregator"
+        subtitle="History of the aggregator's API calls"
         action={
           <div style={s.badges}>
             <span style={{ ...s.badge, background: '#16a34a22', color: '#22c55e', border: '1px solid #22c55e44' }}>
@@ -152,7 +152,7 @@ export default function ApiHistoryPage() {
       {/* Filters */}
       <div style={s.filters}>
         <select value={apiName} onChange={e => setApiName(e.target.value)} style={s.select}>
-          <option value=''>Toutes les APIs</option>
+          <option value=''>All APIs</option>
           {apiNames.map(n => <option key={n} value={n}>{n}</option>)}
         </select>
 
@@ -196,9 +196,9 @@ export default function ApiHistoryPage() {
             color: view === 'timeline' ? '#7a7c9a' : '#3a3c55', fontSize: 12,
             opacity: view === 'timeline' ? 1 : 0.5,
           }}
-          title="Regroupe N appels bruts consécutifs en 1 point (Timeline). 1 = aucun regroupement."
+          title="Groups N consecutive raw calls into 1 point (Timeline). 1 = no grouping."
         >
-          Échantillon
+          Sample
           <input
             type="number"
             min={1}
@@ -237,7 +237,7 @@ export default function ApiHistoryPage() {
 
       {/* Timeline View */}
       {view === 'timeline' && rows.length > 0 && (
-        <Card title="Timeline" subtitle={grouped ? `${rows.length} points · ${totalCalls} appels` : `${rows.length} appels`}>
+        <Card title="Timeline" subtitle={grouped ? `${rows.length} points · ${totalCalls} calls` : `${rows.length} calls`}>
           <ResponsiveContainer width="100%" height={Math.max(200, apiLabels.length * 40 + 60)}>
             <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1a1b2e" />
@@ -282,10 +282,10 @@ export default function ApiHistoryPage() {
           <table style={s.table}>
             <thead>
               <tr>
-                <th style={s.th}>Heure</th>
+                <th style={s.th}>Time</th>
                 <th style={s.th}>API</th>
-                <th style={{ ...s.th, textAlign: 'center' }}>Statut</th>
-                <th style={{ ...s.th, textAlign: 'right' }}>Durée</th>
+                <th style={{ ...s.th, textAlign: 'center' }}>Status</th>
+                <th style={{ ...s.th, textAlign: 'right' }}>Duration</th>
                 <th style={s.th}>Message</th>
               </tr>
             </thead>
@@ -293,7 +293,7 @@ export default function ApiHistoryPage() {
               {rows.length === 0 && !loading && (
                 <tr>
                   <td colSpan={5} style={{ ...s.td, textAlign: 'center', color: '#4a4c6a', padding: '40px 0' }}>
-                    Aucun enregistrement
+                    No records
                   </td>
                 </tr>
               )}
@@ -321,7 +321,7 @@ export default function ApiHistoryPage() {
             <div style={s.pagination}>
               <button style={s.pageBtn} onClick={() => setTablePage(0)} disabled={tablePage === 0}>«</button>
               <button style={s.pageBtn} onClick={() => setTablePage(p => p - 1)} disabled={tablePage === 0}>‹</button>
-              <span style={s.pageInfo}>{tablePage + 1} / {totalPages} · {rows.length} lignes</span>
+              <span style={s.pageInfo}>{tablePage + 1} / {totalPages} · {rows.length} rows</span>
               <button style={s.pageBtn} onClick={() => setTablePage(p => p + 1)} disabled={tablePage >= totalPages - 1}>›</button>
               <button style={s.pageBtn} onClick={() => setTablePage(totalPages - 1)} disabled={tablePage >= totalPages - 1}>»</button>
             </div>

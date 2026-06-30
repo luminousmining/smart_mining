@@ -6,7 +6,7 @@ import Spinner from '../components/Spinner';
 
 function fmt(ts) {
   if (!ts) return '—';
-  return new Date(ts).toLocaleString('fr-FR', {
+  return new Date(ts).toLocaleString('en-US', {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
   });
@@ -66,9 +66,9 @@ export default function GlobalApiPage({ refreshInterval = 30_000 }) {
             <thead>
               <tr>
                 <th style={s.th}>API</th>
-                <th style={{ ...s.th, textAlign: 'center' }}>État</th>
-                <th style={s.th}>Dernier succès</th>
-                <th style={s.th}>Dernier échec</th>
+                <th style={{ ...s.th, textAlign: 'center' }}>Status</th>
+                <th style={s.th}>Last success</th>
+                <th style={s.th}>Last failure</th>
                 <th style={{ ...s.th, textAlign: 'right' }}>✓ 24h</th>
                 <th style={{ ...s.th, textAlign: 'right' }}>✗ 24h</th>
               </tr>
