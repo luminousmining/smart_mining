@@ -56,21 +56,36 @@ def update_coin_by_binance(coin: Coin, data: dict) -> None:
 
 def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
-    coin.set_algorithm(data['algorithm'].lower().replace('-', ''), True)
-    emission =  data['network']['emission']
-    emissionUSD =  data['network']['emissionUSD']
+    algorithm = data['algorithm'].lower().replace('-', '')
+    usd = float(data['price']['USD'])
+    emission =  float(data['network']['emission'])
+    emissionUSD =  float(data['network']['emissionUSD'])
+    hashrate =  float(data['network']['hashrate'])
+    difficulty =  float(data['network']['difficulty'])
 
     #######################################################################
+    if algorithm:
+        coin.set_algorithm(algorithm, True)
     if emission:
-        coin.reward.set_emission_coin(float(emission), True)
+        coin.reward.set_emission_coin(emission, True)
     if emissionUSD:
-        coin.reward.set_emission_usd(float(emissionUSD), True)
+        coin.reward.set_emission_usd(emissionUSD, True)
+
+    #######################################################################
+    if usd:
+        coin.reward.set_usd(usd, False)
+    if difficulty:
+        coin.reward.set_difficulty(difficulty, False)
+    if hashrate:
+        coin.reward.set_network_hashrate(hashrate, False)
 
 
 def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:
     #######################################################################
     coin.set_algorithm(data['algorithm'].lower().replace('-', ''), True)
     coin.reward.set_market_cap(float(data['market_cap'].replace('$', '').replace(',', '')), True)
+
+    #######################################################################
     coin.reward.set_difficulty(float(data['difficulty']), False)
     coin.reward.set_network_hashrate(float(data['nethash']), False)
     coin.reward.set_market_cap(float(data['market_cap'].replace('$', '').replace(',', '')), False)
