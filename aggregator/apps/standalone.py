@@ -105,8 +105,8 @@ def run_standalone(config: Config) -> None:
     workflow_explorer_xmr(config, coin_manager, api_history_manager)
     workflow_explorer_cfx(config, coin_manager, api_history_manager)
     workflow_explorer_etc(config, coin_manager, api_history_manager)
-    for tag, name in (('btc', 'bitcoin'), ('ltc', 'litecoin'), ('fb', 'fractal bitcoin')):
-        workflow_explorer_mempool(config, coin_manager, api_history_manager, tag, name)
+    for tag, name, with_price in (('btc', 'bitcoin', True), ('ltc', 'litecoin', True), ('fb', 'fractal bitcoin', False)):
+        workflow_explorer_mempool(config, coin_manager, api_history_manager, tag, name, with_price)
     for tag, name in (('bch', 'bitcoin cash'), ('doge', 'dogecoin'), ('dash', 'dash'), ('zec', 'zcash'), ('xec', 'ecash')):
         workflow_explorer_blockchair(config, coin_manager, api_history_manager, tag, name)
     for tag, name in (('dingo', 'dingocoin'), ('pep', 'pepecoin'), ('rxd', 'radiant')):

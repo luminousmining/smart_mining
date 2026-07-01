@@ -57,27 +57,27 @@ def update_coin_by_binance(coin: Coin, data: dict) -> None:
 def update_coin_by_hashrate_no(coin: Coin, data: dict) -> None:
     #######################################################################
     algorithm = data['algorithm'].lower().replace('-', '')
-    usd = float(data['price']['USD'])
-    emission =  float(data['network']['emission'])
-    emissionUSD =  float(data['network']['emissionUSD'])
-    hashrate =  float(data['network']['hashrate'])
-    difficulty =  float(data['network']['difficulty'])
+    usd = data['price']['USD']
+    emission =  data['network']['emission']
+    emissionUSD =  data['network']['emissionUSD']
+    hashrate =  data['network']['hashrate']
+    difficulty =  data['network']['difficulty']
 
     #######################################################################
     if algorithm:
         coin.set_algorithm(algorithm, True)
     if emission:
-        coin.reward.set_emission_coin(emission, True)
+        coin.reward.set_emission_coin(float(emission), True)
     if emissionUSD:
-        coin.reward.set_emission_usd(emissionUSD, True)
+        coin.reward.set_emission_usd(float(emissionUSD), True)
 
     #######################################################################
     if usd:
-        coin.reward.set_usd(usd, False)
+        coin.reward.set_usd(float(usd), False)
     if difficulty:
-        coin.reward.set_difficulty(difficulty, False)
+        coin.reward.set_difficulty(float(difficulty), False)
     if hashrate:
-        coin.reward.set_network_hashrate(hashrate, False)
+        coin.reward.set_network_hashrate(float(hashrate), False)
 
 
 def update_coin_by_what_to_mine(coin: Coin, data: dict) -> None:
@@ -120,3 +120,48 @@ def update_coin_by_explorer(coin: Coin, network_hashrate: float, difficulty: flo
         coin.reward.set_difficulty(float(difficulty), True)
     if block_height:
         coin.block_height = int(block_height)
+
+
+def update_coin_by_mempool(coin: Coin, hashrate_data: dict, price_data: dict = None) -> None:
+    #######################################################################
+    network_hashrate = hashrate_data.get('currentHashrate')
+    difficulty = hashrate_data.get('currentDifficulty')
+
+    #######################################################################
+    # On-chain metrics: mempool is the authoritative source (forced).
+    if network_hashrate:
+        coin.reward.set_network_hashrate(float(network_hashrate), True)
+    if difficulty:
+        coin.reward.set_difficulty(float(difficulty), True)
+
+    #######################################################################
+    # Price: secondary source only, dedicated market APIs win (fallback).
+    if price_data:
+        usd = price_data.get('USD')
+        if usd:
+            coin.reward.set_usd(float(usd), False)
+
+
+def update_coin_by_blockchair(coin: Coin, data: dict) -> None:
+    #######################################################################
+    network_hashrate = data.get('hashrate_24h')
+    difficulty = data.get('difficulty')
+    block_height = data.get('blocks')
+    usd = data.get('market_price_usd')
+    market_cap = data.get('market_cap_usd')
+
+    #######################################################################
+    # On-chain metrics: Blockchair is the authoritative source (forced).
+    if network_hashrate:
+        coin.reward.set_network_hashrate(float(network_hashrate), True)
+    if difficulty:
+        coin.reward.set_difficulty(float(difficulty), True)
+    if block_height:
+        coin.block_height = int(block_height)
+
+    #######################################################################
+    # Market metrics: secondary source only, dedicated market APIs win (fallback).
+    if usd:
+        coin.reward.set_usd(float(usd), False)
+    if market_cap:
+        coin.reward.set_market_cap(float(market_cap), False)

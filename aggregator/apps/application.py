@@ -171,9 +171,9 @@ def run_application(config: Config) -> None:
         thmCoin.add_handler(HandlerNamespace.EXPLORER, 'cfx', get_seconds(t.explorer_cfx), workflow_explorer_cfx, config, coin_manager, api_history_manager)
     if 'etc' in config.apis.explorer:
         thmCoin.add_handler(HandlerNamespace.EXPLORER, 'etc', get_seconds(t.explorer_etc), workflow_explorer_etc, config, coin_manager, api_history_manager)
-    for tag, name in (('btc', 'bitcoin'), ('ltc', 'litecoin'), ('fb', 'fractal bitcoin')):
+    for tag, name, with_price in (('btc', 'bitcoin', True), ('ltc', 'litecoin', True), ('fb', 'fractal bitcoin', False)):
         if tag in config.apis.explorer:
-            thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag)), workflow_explorer_mempool, config, coin_manager, api_history_manager, tag, name)
+            thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag)), workflow_explorer_mempool, config, coin_manager, api_history_manager, tag, name, with_price)
     for tag, name in (('bch', 'bitcoin cash'), ('doge', 'dogecoin'), ('dash', 'dash'), ('zec', 'zcash'), ('xec', 'ecash')):
         if tag in config.apis.explorer:
             thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag, 90)), workflow_explorer_blockchair, config, coin_manager, api_history_manager, tag, name)

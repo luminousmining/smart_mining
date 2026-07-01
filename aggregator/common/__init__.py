@@ -10,7 +10,9 @@ from common.coin import (
     update_coin_by_what_to_mine,
     update_coin_by_minerstat,
     update_coin_by_coingecko,
-    update_coin_by_explorer
+    update_coin_by_explorer,
+    update_coin_by_blockchair,
+    update_coin_by_mempool
 )
 from common.pool import (
     CoinPool,

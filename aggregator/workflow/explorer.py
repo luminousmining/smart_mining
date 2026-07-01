@@ -22,7 +22,9 @@ from api.explorer import (
 from common import (
     CoinManager,
     ApiHistoryManager,
-    update_coin_by_explorer
+    update_coin_by_explorer,
+    update_coin_by_blockchair,
+    update_coin_by_mempool
 )
 
 
@@ -340,7 +342,8 @@ def workflow_explorer_mempool(
     coin_manager: CoinManager,
     api_history_manager: ApiHistoryManager,
     tag: str,
-    name: str
+    name: str,
+    with_price: bool = False
 ) -> None:
     """Generic mempool.space-family explorer (btc, ltc, fb)."""
     logging.info(f'===== WORKFLOW EXPLORER MEMPOOL {tag.upper()} =====')
@@ -369,10 +372,11 @@ def workflow_explorer_mempool(
 
         coin = coin_manager.get_or_create(name, tag)
 
-        network_hashrate = raw.get('currentHashrate')
-        difficulty = raw.get('currentDifficulty')
+        # Only instances that publish their own native-coin price (btc, ltc).
+        # Fractal's instance mirrors the BTC price, so it must stay disabled.
+        price = api.get_price() if with_price else None
 
-        update_coin_by_explorer(coin, network_hashrate, difficulty, None)
+        update_coin_by_mempool(coin, raw, price)
 
     ###########################################################################
     except Exception as err:
@@ -422,11 +426,7 @@ def workflow_explorer_blockchair(
 
         coin = coin_manager.get_or_create(name, tag)
 
-        network_hashrate = data.get('hashrate_24h')
-        difficulty = data.get('difficulty')
-        block_height = data.get('blocks')
-
-        update_coin_by_explorer(coin, network_hashrate, difficulty, block_height)
+        update_coin_by_blockchair(coin, data)
 
     ###########################################################################
     except Exception as err:

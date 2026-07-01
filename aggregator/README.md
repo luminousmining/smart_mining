@@ -17,12 +17,11 @@ External APIs
   │     ├── 2Miners
   │     └── Nanopool
   └── Explorer
-        ├── Ergo
-        ├── Kaspa
-        ├── Ravencoin
-        ├── Monero
-        ├── Conflux
-        └── Ethereum Classic
+        ├── Ergo · Kaspa · Ravencoin · Monero · Conflux · Ethereum Classic
+        ├── Bitcoin · Litecoin · Fractal Bitcoin              (mempool.space family)
+        ├── Bitcoin Cash · Dogecoin · Dash · Zcash · eCash    (Blockchair)
+        ├── Dingocoin · Pepecoin · Radiant                    (eIquidus)
+        └── Nervos · Salvium · QRL · Alephium · Bitcoin SV · Pirate Chain
         ↓
   api/  →  workflow/  →  common/ (managers)  →  dataset/ JSON  →  PostgreSQL (optional)
 ```
@@ -82,10 +81,35 @@ Endpoints are configured in `config.json` (see `config.json.example`). Sources w
 | Monero (xmr) | `https://xmrchain.net` | No | Not specified |
 | Conflux (cfx) | `https://api.confluxscan.io` | No | Not specified |
 | Ethereum Classic (etc) | `https://etc.blockscout.com` | No | Not specified |
+| Bitcoin (btc) | `https://mempool.space` | No | Not specified |
+| Litecoin (ltc) | `https://litecoinspace.org` | No | Not specified |
+| Fractal Bitcoin (fb) | `https://mempool.fractalbitcoin.io` | No | Not specified |
+| Bitcoin Cash (bch) | `https://api.blockchair.com/bitcoin-cash` | No | ~30/min · ~1,440/day |
+| Dogecoin (doge) | `https://api.blockchair.com/dogecoin` | No | ~30/min · ~1,440/day |
+| Dash (dash) | `https://api.blockchair.com/dash` | No | ~30/min · ~1,440/day |
+| Zcash (zec) | `https://api.blockchair.com/zcash` | No | ~30/min · ~1,440/day |
+| eCash (xec) | `https://api.blockchair.com/ecash` | No | ~30/min · ~1,440/day |
+| Dingocoin (dingo) | `https://explorer.dingocoin.com` | No | Not specified |
+| Pepecoin (pep) | `https://pepeblocks.com` | No⁵ | Not specified |
+| Radiant (rxd) | `https://radiantexplorer.com` | No | Not specified |
+| Nervos (ckb) | `https://mainnet-api.explorer.nervos.org` | No⁶ | Not specified |
+| Salvium (sal) | `https://explorer.salvium.io` | No | Not specified |
+| QRL (qrl) | `https://explorer.theqrl.org` | No⁵ | Not specified |
+| Alephium (alph) | `https://backend.mainnet.alephium.org` | No | Not specified |
+| Bitcoin SV (bsv) | `https://api.whatsonchain.com/v1/bsv/main` | No³ | Not specified |
+| Pirate Chain (arrr) | `https://explorer.pirate.black` | No⁴ ⁵ | Not specified |
 
 ¹ Ravencoin uses basic RPC authentication (`rpc_user` / `rpc_password`, default `anonymous`), not an API key.
 
 ² *Rate Limit (free)* reflects the **free / free-API-key** mode only (paid tiers are not listed). "Not specified" means the provider publishes no documented free-tier limit.
+
+³ Bitcoin SV exposes difficulty only; network hashrate is derived as `difficulty · 2³² / 600`.
+
+⁴ Pirate Chain exposes difficulty only (Equihash Sol/s hashrate is not published); network hashrate falls back to Hashrate.no. Alephium is the mirror case — hashrate only, difficulty falls back to Hashrate.no.
+
+⁵ Pepecoin, QRL and Pirate Chain require a browser `User-Agent` header (Cloudflare / CDN blocks the default one).
+
+⁶ Nervos requires JSON:API headers (`Accept` / `Content-Type: application/vnd.api+json`).
 
 ## Installation
 
@@ -196,6 +220,8 @@ Logs are written to both the console and `aggregator.log`.
       "use_api": true,
       "host": "https://etc.blockscout.com"
     }
+    // ... plus btc, ltc, fb, bch, doge, dash, zec, xec, dingo, pep, rxd,
+    //     ckb, sal, qrl, alph, bsv, arrr — see config.json.example for hosts
   },
 
   "timers": {
@@ -220,6 +246,8 @@ Logs are written to both the console and `aggregator.log`.
       "xmr": 5,
       "cfx": 5,
       "etc": 5
+      // ... one entry per explorer tag. Blockchair coins (bch/doge/dash/zec/xec)
+      //     share one endpoint: 375s each = ~80% of the 1,440 req/day free budget.
     }
   }
 }
