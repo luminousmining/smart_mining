@@ -20,7 +20,6 @@ from api.explorer import (
     PirateExplorerAPI
 )
 from common import (
-    Coin,
     CoinManager,
     ApiHistoryManager,
     update_coin_by_explorer
@@ -56,12 +55,7 @@ def workflow_explorer_ergo(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_from_tag('erg')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('ergo', True)
-            coin.set_tag('erg', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('ergo', 'erg')
 
         network_hashrate = raw.get('networkHashrate')
         difficulty = raw.get('difficulty')
@@ -112,12 +106,7 @@ def workflow_explorer_kaspa(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_from_tag('kas')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('kaspa', True)
-            coin.set_tag('kas', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('kaspa', 'kas')
 
         _hashrate_ghs = hashrate_info.get('hashrate')
         network_hashrate = float(_hashrate_ghs) * 1e9 if _hashrate_ghs is not None else None
@@ -169,12 +158,7 @@ def workflow_explorer_rvn(
             message = 'RPC returned empty response'
             return
 
-        coin = coin_manager.get_from_tag('rvn')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('ravencoin', True)
-            coin.set_tag('rvn', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('ravencoin', 'rvn')
 
         difficulty = blockchain_info.get('difficulty')
         block_height = blockchain_info.get('blocks')
@@ -224,12 +208,7 @@ def workflow_explorer_xmr(
             return
 
         data = raw.get('data', {})
-        coin = coin_manager.get_from_tag('xmr')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('monero', True)
-            coin.set_tag('xmr', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('monero', 'xmr')
 
         network_hashrate = data.get('hash_rate')
         difficulty = data.get('difficulty')
@@ -285,12 +264,7 @@ def workflow_explorer_cfx(
             return
 
         latest = data_list[0]
-        coin = coin_manager.get_from_tag('cfx')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('conflux', True)
-            coin.set_tag('cfx', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('conflux', 'cfx')
 
         network_hashrate = latest.get('hashRate')
         difficulty = latest.get('difficulty')
@@ -340,12 +314,7 @@ def workflow_explorer_etc(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_from_tag('etc')
-        if coin is None:
-            coin = Coin()
-            coin.set_name('ethereum classic', True)
-            coin.set_tag('etc', True)
-            coin_manager.insert(coin)
+        coin = coin_manager.get_or_create('ethereum classic', 'etc')
 
         network_hashrate = raw.get('network_hashrate')
         difficulty = raw.get('difficulty')
@@ -398,7 +367,7 @@ def workflow_explorer_mempool(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create(tag, name)
+        coin = coin_manager.get_or_create(name, tag)
 
         network_hashrate = raw.get('currentHashrate')
         difficulty = raw.get('currentDifficulty')
@@ -451,7 +420,7 @@ def workflow_explorer_blockchair(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create(tag, name)
+        coin = coin_manager.get_or_create(name, tag)
 
         network_hashrate = data.get('hashrate_24h')
         difficulty = data.get('difficulty')
@@ -502,7 +471,7 @@ def workflow_explorer_eiquidus(
         difficulty = api.get_difficulty()
         network_hashrate = api.get_network_hashrate()
 
-        coin = coin_manager.get_or_create(tag, name)
+        coin = coin_manager.get_or_create(name, tag)
 
         update_coin_by_explorer(coin, network_hashrate, difficulty, None)
 
@@ -549,7 +518,7 @@ def workflow_explorer_ckb(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('ckb', 'nervos network')
+        coin = coin_manager.get_or_create('nervos network', 'ckb')
 
         network_hashrate = attributes.get('hash_rate')
         difficulty = attributes.get('current_epoch_difficulty')
@@ -599,7 +568,7 @@ def workflow_explorer_sal(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('sal', 'salvium')
+        coin = coin_manager.get_or_create('salvium', 'sal')
 
         network_hashrate = data.get('hash_rate')
         difficulty = data.get('difficulty')
@@ -649,7 +618,7 @@ def workflow_explorer_qrl(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('qrl', 'quantum resistant ledger')
+        coin = coin_manager.get_or_create('quantum resistant ledger', 'qrl')
 
         network_hashrate = raw.get('hashrate')
         difficulty = raw.get('difficulty')
@@ -701,7 +670,7 @@ def workflow_explorer_alph(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('alph', 'alephium')
+        coin = coin_manager.get_or_create('alephium', 'alph')
 
         # The backend exposes no difficulty endpoint; difficulty stays on the
         # hashrate.no fallback. Take the most recent hashrate sample.
@@ -753,7 +722,7 @@ def workflow_explorer_bsv(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('bsv', 'bitcoin sv')
+        coin = coin_manager.get_or_create('bitcoin sv', 'bsv')
 
         # WhatsOnChain exposes no hashrate; derive it from difficulty (SHA-256, 600s block time).
         network_hashrate = float(difficulty) * (2 ** 32) / 600.0
@@ -804,7 +773,7 @@ def workflow_explorer_arrr(
             message = 'API returned empty response'
             return
 
-        coin = coin_manager.get_or_create('arrr', 'pirate chain')
+        coin = coin_manager.get_or_create('pirate chain', 'arrr')
 
         # Equihash Sol/s hashrate is not exposed — it stays on the hashrate.no fallback.
         update_coin_by_explorer(coin, None, difficulty, None)
