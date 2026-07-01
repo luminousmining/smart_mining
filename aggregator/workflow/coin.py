@@ -306,13 +306,7 @@ def workflow_coin_what_to_mine(config: Config, coin_manager: CoinManager, api_hi
             if not name:
                 continue
 
-            coin = coin_manager.get_from_tag(tag)
-            if coin is None:
-                coin = Coin()
-                coin.set_tag(tag, True)
-                coin.set_name(name, True)
-                coin_manager.insert(coin)
-
+            coin = coin_manager.get_or_create(tag, name)
             coin.set_name(name, True)
 
             update_coin_by_what_to_mine(coin, value)

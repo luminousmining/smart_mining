@@ -86,7 +86,24 @@
         "rvn": { "use_api": true, "host": "https://rvn-rpc-mainnet.ting.finance/rpc", "rpc_user": "anonymous", "rpc_password": "anonymous" },
         "xmr": { "use_api": true, "host": "https://xmrchain.net" },
         "cfx": { "use_api": true, "host": "https://api.confluxscan.io" },
-        "etc": { "use_api": true, "host": "https://etc.blockscout.com" }
+        "etc": { "use_api": true, "host": "https://etc.blockscout.com" },
+        "btc": { "use_api": true, "host": "https://mempool.space" },
+        "ltc": { "use_api": true, "host": "https://litecoinspace.org" },
+        "fb": { "use_api": true, "host": "https://mempool.fractalbitcoin.io" },
+        "bch": { "use_api": true, "host": "https://api.blockchair.com/bitcoin-cash" },
+        "doge": { "use_api": true, "host": "https://api.blockchair.com/dogecoin" },
+        "dash": { "use_api": true, "host": "https://api.blockchair.com/dash" },
+        "zec": { "use_api": true, "host": "https://api.blockchair.com/zcash" },
+        "xec": { "use_api": true, "host": "https://api.blockchair.com/ecash" },
+        "dingo": { "use_api": true, "host": "https://explorer.dingocoin.com" },
+        "pep": { "use_api": true, "host": "https://pepeblocks.com" },
+        "rxd": { "use_api": true, "host": "https://radiantexplorer.com" },
+        "ckb": { "use_api": true, "host": "https://mainnet-api.explorer.nervos.org" },
+        "sal": { "use_api": true, "host": "https://explorer.salvium.io" },
+        "qrl": { "use_api": true, "host": "https://explorer.theqrl.org" },
+        "alph": { "use_api": true, "host": "https://backend.mainnet.alephium.org" },
+        "bsv": { "use_api": true, "host": "https://api.whatsonchain.com/v1/bsv/main" },
+        "arrr": { "use_api": true, "host": "https://explorer.pirate.black" }
     },
     "timers":
     {
@@ -124,7 +141,24 @@
             "rvn": 60,
             "xmr": 120,
             "cfx": 60,
-            "etc": 60
+            "etc": 60,
+            "btc": 60,
+            "ltc": 60,
+            "fb": 60,
+            "bch": 90,
+            "doge": 90,
+            "dash": 90,
+            "zec": 90,
+            "xec": 90,
+            "dingo": 60,
+            "pep": 60,
+            "rxd": 60,
+            "ckb": 60,
+            "sal": 60,
+            "qrl": 60,
+            "alph": 60,
+            "bsv": 60,
+            "arrr": 60
         }
     }
 }

@@ -13,9 +13,14 @@ def _make_coin(tag='erg', name='ergo', algorithm='autolykos'):
 def _make_hashrate_no_data():
     return {
         'algorithm': 'Autolykos',
+        'price': {
+            'USD': 1.5,
+        },
         'network': {
             'emission': 72.0,
             'emissionUSD': 88.56,
+            'hashrate': '4000000.0',
+            'difficulty': '999999.0',
         },
     }
 
@@ -53,6 +58,20 @@ class TestUpdateCoinByHashrateNo(unittest.TestCase):
         coin.reward.usd = 5.0
         update_coin_by_hashrate_no(coin, _make_hashrate_no_data())
         self.assertEqual(coin.reward.usd, 5.0)
+
+    def test_sets_difficulty_and_hashrate_as_fallback(self):
+        coin = _make_coin()
+        update_coin_by_hashrate_no(coin, _make_hashrate_no_data())
+        self.assertEqual(coin.reward.difficulty, 999999.0)
+        self.assertEqual(coin.reward.network_hashrate, 4_000_000.0)
+
+    def test_does_not_override_existing_difficulty_and_hashrate(self):
+        coin = _make_coin()
+        coin.reward.difficulty = 111.0
+        coin.reward.network_hashrate = 222.0
+        update_coin_by_hashrate_no(coin, _make_hashrate_no_data())
+        self.assertEqual(coin.reward.difficulty, 111.0)
+        self.assertEqual(coin.reward.network_hashrate, 222.0)
 
 
 class TestUpdateCoinByWhatToMine(unittest.TestCase):

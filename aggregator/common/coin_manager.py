@@ -71,6 +71,15 @@ class CoinManager:
                 return coin
         return None
 
+    def get_or_create(self, tag: str, name: str) -> Coin:
+        coin = self.get_from_tag(tag)
+        if coin is None:
+            coin = Coin()
+            coin.set_tag(tag, True)
+            coin.set_name(name, True)
+            self.insert(coin)
+        return coin
+
     def get_all(self) -> list:
         return list(self._coins.values())
 

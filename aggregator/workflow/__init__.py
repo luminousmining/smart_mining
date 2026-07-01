@@ -25,5 +25,14 @@ from workflow.explorer import (
     workflow_explorer_rvn,
     workflow_explorer_xmr,
     workflow_explorer_cfx,
-    workflow_explorer_etc
+    workflow_explorer_etc,
+    workflow_explorer_mempool,
+    workflow_explorer_blockchair,
+    workflow_explorer_eiquidus,
+    workflow_explorer_ckb,
+    workflow_explorer_sal,
+    workflow_explorer_qrl,
+    workflow_explorer_alph,
+    workflow_explorer_bsv,
+    workflow_explorer_arrr
 )

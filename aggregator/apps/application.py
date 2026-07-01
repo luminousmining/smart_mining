@@ -36,7 +36,16 @@ from workflow import (
     workflow_explorer_rvn,
     workflow_explorer_xmr,
     workflow_explorer_cfx,
-    workflow_explorer_etc
+    workflow_explorer_etc,
+    workflow_explorer_mempool,
+    workflow_explorer_blockchair,
+    workflow_explorer_eiquidus,
+    workflow_explorer_ckb,
+    workflow_explorer_sal,
+    workflow_explorer_qrl,
+    workflow_explorer_alph,
+    workflow_explorer_bsv,
+    workflow_explorer_arrr
 )
 
 
@@ -162,6 +171,27 @@ def run_application(config: Config) -> None:
         thmCoin.add_handler(HandlerNamespace.EXPLORER, 'cfx', get_seconds(t.explorer_cfx), workflow_explorer_cfx, config, coin_manager, api_history_manager)
     if 'etc' in config.apis.explorer:
         thmCoin.add_handler(HandlerNamespace.EXPLORER, 'etc', get_seconds(t.explorer_etc), workflow_explorer_etc, config, coin_manager, api_history_manager)
+    for tag, name in (('btc', 'bitcoin'), ('ltc', 'litecoin'), ('fb', 'fractal bitcoin')):
+        if tag in config.apis.explorer:
+            thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag)), workflow_explorer_mempool, config, coin_manager, api_history_manager, tag, name)
+    for tag, name in (('bch', 'bitcoin cash'), ('doge', 'dogecoin'), ('dash', 'dash'), ('zec', 'zcash'), ('xec', 'ecash')):
+        if tag in config.apis.explorer:
+            thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag, 90)), workflow_explorer_blockchair, config, coin_manager, api_history_manager, tag, name)
+    for tag, name in (('dingo', 'dingocoin'), ('pep', 'pepecoin'), ('rxd', 'radiant')):
+        if tag in config.apis.explorer:
+            thmCoin.add_handler(HandlerNamespace.EXPLORER, tag, get_seconds(t.explorer_timer(tag)), workflow_explorer_eiquidus, config, coin_manager, api_history_manager, tag, name)
+    if 'ckb' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'ckb', get_seconds(t.explorer_timer('ckb')), workflow_explorer_ckb, config, coin_manager, api_history_manager)
+    if 'sal' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'sal', get_seconds(t.explorer_timer('sal')), workflow_explorer_sal, config, coin_manager, api_history_manager)
+    if 'qrl' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'qrl', get_seconds(t.explorer_timer('qrl')), workflow_explorer_qrl, config, coin_manager, api_history_manager)
+    if 'alph' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'alph', get_seconds(t.explorer_timer('alph')), workflow_explorer_alph, config, coin_manager, api_history_manager)
+    if 'bsv' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'bsv', get_seconds(t.explorer_timer('bsv')), workflow_explorer_bsv, config, coin_manager, api_history_manager)
+    if 'arrr' in config.apis.explorer:
+        thmCoin.add_handler(HandlerNamespace.EXPLORER, 'arrr', get_seconds(t.explorer_timer('arrr')), workflow_explorer_arrr, config, coin_manager, api_history_manager)
 
     # Timer Handlers Pools
     thmPool = TimerHandlerManager()
@@ -203,6 +233,9 @@ def run_application(config: Config) -> None:
         thmCoin.process(HandlerNamespace.EXPLORER, 'xmr')
         thmCoin.process(HandlerNamespace.EXPLORER, 'cfx')
         thmCoin.process(HandlerNamespace.EXPLORER, 'etc')
+        for tag in ('btc', 'ltc', 'fb', 'bch', 'doge', 'dash', 'zec', 'xec',
+                    'dingo', 'pep', 'rxd', 'ckb', 'sal', 'qrl', 'alph', 'bsv', 'arrr'):
+            thmCoin.process(HandlerNamespace.EXPLORER, tag)
 
         # Timer Managers
         thmManager.process(HandlerNamespace.MANAGER, 'coin')

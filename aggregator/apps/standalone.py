@@ -36,7 +36,16 @@ from workflow import (
     workflow_explorer_rvn,
     workflow_explorer_xmr,
     workflow_explorer_cfx,
-    workflow_explorer_etc
+    workflow_explorer_etc,
+    workflow_explorer_mempool,
+    workflow_explorer_blockchair,
+    workflow_explorer_eiquidus,
+    workflow_explorer_ckb,
+    workflow_explorer_sal,
+    workflow_explorer_qrl,
+    workflow_explorer_alph,
+    workflow_explorer_bsv,
+    workflow_explorer_arrr
 )
 
 
@@ -96,6 +105,18 @@ def run_standalone(config: Config) -> None:
     workflow_explorer_xmr(config, coin_manager, api_history_manager)
     workflow_explorer_cfx(config, coin_manager, api_history_manager)
     workflow_explorer_etc(config, coin_manager, api_history_manager)
+    for tag, name in (('btc', 'bitcoin'), ('ltc', 'litecoin'), ('fb', 'fractal bitcoin')):
+        workflow_explorer_mempool(config, coin_manager, api_history_manager, tag, name)
+    for tag, name in (('bch', 'bitcoin cash'), ('doge', 'dogecoin'), ('dash', 'dash'), ('zec', 'zcash'), ('xec', 'ecash')):
+        workflow_explorer_blockchair(config, coin_manager, api_history_manager, tag, name)
+    for tag, name in (('dingo', 'dingocoin'), ('pep', 'pepecoin'), ('rxd', 'radiant')):
+        workflow_explorer_eiquidus(config, coin_manager, api_history_manager, tag, name)
+    workflow_explorer_ckb(config, coin_manager, api_history_manager)
+    workflow_explorer_sal(config, coin_manager, api_history_manager)
+    workflow_explorer_qrl(config, coin_manager, api_history_manager)
+    workflow_explorer_alph(config, coin_manager, api_history_manager)
+    workflow_explorer_bsv(config, coin_manager, api_history_manager)
+    workflow_explorer_arrr(config, coin_manager, api_history_manager)
 
     # Process and finalize collected data
     coin_manager.update()

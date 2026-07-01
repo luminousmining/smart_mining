@@ -5,3 +5,12 @@ from api.explorer.rvn import RavencoinRPCAPI
 from api.explorer.xmr import MoneroExplorerAPI
 from api.explorer.cfx import ConfluxExplorerAPI
 from api.explorer.etc import ETCExplorerAPI
+from api.explorer.mempool import MempoolExplorerAPI
+from api.explorer.blockchair import BlockchairExplorerAPI
+from api.explorer.eiquidus import EIquidusExplorerAPI
+from api.explorer.nervos import NervosExplorerAPI
+from api.explorer.salvium import SalviumExplorerAPI
+from api.explorer.qrl import QRLExplorerAPI
+from api.explorer.alephium import AlephiumExplorerAPI
+from api.explorer.whatsonchain import WhatsOnChainAPI
+from api.explorer.pirate import PirateExplorerAPI

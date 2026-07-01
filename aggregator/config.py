@@ -71,12 +71,16 @@ class ConfigTimers:
         self.database = managers.get('database', 30)
 
         explorer = data.get('explorer', {})
+        self.explorer = explorer
         self.explorer_erg = explorer.get('erg', 60)
         self.explorer_kas = explorer.get('kas', 60)
         self.explorer_rvn = explorer.get('rvn', 60)
         self.explorer_xmr = explorer.get('xmr', 120)
         self.explorer_cfx = explorer.get('cfx', 60)
         self.explorer_etc = explorer.get('etc', 60)
+
+    def explorer_timer(self, tag: str, default: int = 60) -> int:
+        return self.explorer.get(tag, default)
 
 
 class ConfigBenchmark:
